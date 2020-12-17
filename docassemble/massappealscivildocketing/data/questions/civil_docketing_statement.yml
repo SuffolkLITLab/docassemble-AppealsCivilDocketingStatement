@@ -1,0 +1,709 @@
+include:
+  - docassemble.MAVirtualCourt:basic-questions.yml
+---
+comment: |
+  The metadata section controls the tab title and saved interview title. You can delete this section if you include this YAML file in another YAML file.
+metadata:
+  title: |
+    Civil Docketing Statement
+  short title: |
+    Civil Docketing
+---
+objects:
+  - judges: |
+      DAList.using(object_type=Individual, ask_number=True)
+---
+comment: |
+  This section is used by MAVirtualCourts to control how some of the questions work.
+mandatory: True
+code: |
+  interview_metadata # make sure we initialize the object
+  if not defined("interview_metadata['civil_docketing_statement']"):
+    interview_metadata.initializeObject('civil_docketing_statement')
+  interview_metadata['civil_docketing_statement'].update({
+    'title': 'Civil Docketing Statement',
+    'short title': 'Civil Docketing',
+    'description': 'Use this form to fill out an Appeals Court Civil Docketing Statement, required for many other Appeals Court forms',
+    'original_form': 'https://www.mass.gov/doc/civil-docketing-statement-updated-10-28-19/download',
+    'allowed courts': [
+    ],
+    'categories': [
+    ],
+    'logic block variable': 'civil_docketing_statement',
+    'attachment block variable': 'civil_docketing_statement_attachment',
+    'typical role': 'unknown',
+  })
+---
+features:
+  navigation: True
+---
+sections:
+  - review_civil_docketing_statement: Review your answers
+---
+mandatory: True
+id: interview_order_civil_docketing_statement
+code: |
+  # This is a placeholder to control logic flow in this interview
+
+  basic_questions_intro_screen 
+  civil_docketing_statement_intro
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["civil_docketing_statement"]["allowed courts"]
+  nav.set_section('review_civil_docketing_statement')
+  # Below sets the user_role by asking a question.
+  # You can set user_role directly instead to either 'plaintiff' or 'defendant'
+  # user_ask_role
+  attorney_bbo
+  trial_court_name
+  case_info_was_impounded
+  case_info_impoundment_details
+  judges.complete_attribute = 'role'
+  judges.gather()
+  nature_of_case
+  interlocutory_appeal_reason
+  set_progress(10.0)
+  statement_of_anticipated_issues
+  party_proceedings_exist
+  have_served_other_party
+  # Set the answer file name.
+  set_parts(subtitle=str(users))
+  docket_numbers
+  set_progress(20.0)
+  plaintiffs
+  defendants
+  users
+  attorneys
+  set_progress(30.0)
+  users[0].address.block()
+  signature_date
+  set_progress(40.0)
+  other_parties
+  users[0].phone_number
+  # Save (anonymized) interview statistics.
+  store_variables_snapshot(data={'zip': users[0].address.zip})
+  civil_docketing_statement_preview_question # Pre-canned preview screen
+  basic_questions_signature_flow
+  users[0].signature
+  civil_docketing_statement = True
+---
+comment: |
+  This question is used to introduce your interview. Please customize
+id: Civil Docketing Statement
+continue button field: civil_docketing_statement_intro
+question: |
+  Civil Docketing Statement
+subquestion: |
+  Use this form to fill out an Appeals Court Civil Docketing Statement. Each {appellant} or {cross-appellant}, other than a self-represented litigant who   is incarcerated, is required to submit this statement within fourteen (14) days of issuance of the notice of entry of the appeal. 
+terms:
+  appellant: |
+    The party of the lower court case who is appealing the lower court's decision
+  cross-appellant: |
+    The opposing party of the appellant, that has also decided to appeal the lower court's decision for different reasons than the original appeal.
+---
+id: Review your form before you sign it
+continue button field: civil_docketing_statement_preview_question
+question: |
+  Review your form before you sign it
+subquestion: |
+  Here is a preview of the form you'll sign on the next page. 
+  
+   ${ pdf_concatenate(civil_docketing_statement_attachment['preview'], filename='civil_docketing_statement.pdf')}
+---
+id: Are you an attorney
+question: |
+  Are you the attorney?
+yesno: is_attorney
+---
+id: Attorney Information
+question: |
+  Please provide your attorney's information for the court
+fields:
+  - Attorney Full Name: attorney_name_full
+  - BBO number: attorney_bbo
+    required: True
+---
+id: Attorney representation
+question: |
+  Will you have an attorney representing you?
+yesno: user_has_attorney
+---
+code: |
+  if not user_has_attorney:
+    attorney_name_full = 'N/A'
+    attorney_bbo = 'N/A'
+---
+id: Judges on the lower case
+question: |
+  How many judges issued orders that are being appealed?
+subquestion: |
+ If the appeal is directly from a board or agency, this number should be 0.
+fields:
+  - Number of Judges: judges.target_number
+    datatype: integer
+    min: 0
+    max: 3
+---
+id: "Judge's name"
+question: |
+  What is the name of the ${ ordinal(i) } judge?
+comment: |
+  % if judges.number_gathered() > 0:
+  So far you have mentioned: ${ judges.comma_and_list() }
+  % endif
+fields:
+  - First Name: judges[i].name.first
+  - Last Name: judges[i].name.last
+  - Suffix: judges[i].name.suffix
+    required: False
+    code: name_suffix()
+---
+id: Judge role
+question: |
+  What role did Judge ${ judges[i].name } play in the case?
+fields:
+  - "Judge ${ judges[i].possessive('role') }": judges[i].role
+    choices:
+      - Entered Judgment
+      - Heard Motion
+      - Reported Case or Question
+      - Trial Judge
+---
+code: |
+  judge0 = judges[0].name
+  judge1 = judges[1].name
+  judge2 = judges[2].name
+  judge0_role = judges[0].role
+  judge1_role = judges[1].role
+  judge2_role = judges[2].role
+---
+id: Lower Court Board name
+question: |
+  What was the lower court department name for the original case?
+fields:
+  - Department name: trial_court_name
+    maxlength: 96
+---
+id: Lower Court docket number
+question: |
+  What was the docket number of the original case in the ${ trial_court_name } court?
+fields:
+  - "Docket number": trial_court_docket_number
+    maxlength: 96
+---
+id: Anything Impounded
+question: |
+  Was the case or any information in the record designated as impounded in the lower count?
+yesno: case_info_was_impounded
+---
+depends on: case_info_was_impounded
+code: |
+  if not case_info_was_impounded:
+    case_info_impoundment_details = 'N/A'
+---
+id: Impounded Information
+depends on: case_info_was_impounded
+question: |
+  Which documents were impounded?
+subquestion: |
+  Please also provide the authority for impoundment, e.g. court order, statute.
+fields:
+  - 'Document details': case_info_impoundment_details
+    input type: area
+    maxlength: 910
+help: |
+  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
+  
+  Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on Impoundment Procedure Rule 12(c), Supreme Judicial Court Rule 1:15 s. 2(c), and M.R.A.P. 16(d), 16(m), 18(a), and 18(g).
+---
+id: Nature of the Case
+question: |
+  Select the most appropriate description of the case. 
+fields:
+  - 'Nature of case': nature_of_case
+    choices:
+      - Abuse Prevention Order
+      - Administrative Law
+      - Appellate Tax Board
+      - Arbitration
+      - Business/Commercial
+      - Child Welfare/DCF/Adoption
+      - Civil Forfeiture
+      - Civil Motor Vehicle Infractions
+      - Civil Service
+      - Contract
+      - Domestic Relations/Family Law
+      - Employment Law/Discrimination
+      - Environmental, G. L. c.21E
+      - Extreme Risk Protection Order
+      - Equity
+      - Government/Municipality
+      - Impoundment
+      - Insurance Law
+      - Labor Law/Employment Relations Board
+      - Land Use
+      - Legal or Non-Medical Malpractice
+      - Medical Malpractice
+      - Mortgage/Foreclosure Law
+      - "Prisoner's Rights and Claims"
+      - Probate Law
+      - Real Estate
+      - Sex Offender Registry Board
+      - Sexually Dangerous Person Proceeding
+      - Tort
+      - "Workers' Compensation"
+      - Other
+  - Please Specify: nature_of_case
+    maxlength: 49
+    show if:
+      variable: nature_of_case
+      is: Other
+---
+code: |
+  if is_final_judgment:
+    interlocutory_appeal_reason = 'N/A'
+---
+id: is final_judgement
+question: |
+  Is the appeal from a final judgement?
+help: |
+  In legal terms, did the judgment dispose of all parties and claims?
+yesno: is_final_judgment
+---
+id: Perfection of Appeal
+question: |
+  Identify the basis on which the interlocutory order is immediately appealable
+fields:
+  - 'Basis for Appeal': interlocutory_appeal_reason
+    choices:
+      - M.R.C.P. 54(b)
+      - Report
+      - Present Execution
+      - Other
+  - 'Please Specify': interlocutory_appeal_reason
+    maxlength: 32
+    show if:
+      variable: interlocutory_appeal_reason
+      is: Other
+---
+id: docketing_date of order
+question: |
+  When was the judgment or interlocutory order being appealed docketed?
+fields:
+  - Docketing Date: order_docketing_date
+    datatype: date
+---
+id: notice of appeal date
+question: |
+  When was the notice of the appeal filed?
+fields:
+  - Notice of Appeal Date: notice_of_appeal_date
+    datatype: date
+---
+comment: |
+  This could be a single: "Were any motions filed?", with yesnos for each, 
+  just yesnos for each, or a "Were any filed?" with a "what was filed" dropdown + other, and generic for each. Going with the first for now.
+id: any motions
+question: |
+  Were any post-judgment motions that may affect the timeliness of the notice of the appeal?
+yesno: any_motions_filed
+---
+code: |
+  if not any_motions_filed:
+    motion_for_judgment_is_filed = False
+    motion_to_amend_is_filed = False
+    motion_to_alter_is_filed = False
+    motion_for_relief_from_judgment_is_filed = False
+    other_type_of_motion = 'N/A'
+    other_type_of_motion_is_filed = False
+    # set dates to N/A? unclear
+---
+id: motion for judgment
+question: |
+  'Was a Motion for Judgement (Rule 50(b)) Notwithstanding the Verdict filed?'
+fields:
+  - '': motion_for_judgment_is_filed
+    datatype: yesno
+  - 'When was it served (not filed)?': motion_for_judgment_served_date
+    datatype: date
+    show if:
+      variable: motion_for_judgment_is_filed
+      is: True
+---
+id: motion to amend
+question: |
+  'Was a Motion to Amend or Make Additional Findings (Rule 52(b)) filed?'
+fields: 
+  - '': motion_to_amend_is_filed
+    datatype: yesno
+  - 'When was it served (not filed)': motion_to_amend_served_date
+    datatype: date
+    show if: 
+      variable: motion_to_amend_is_filed
+      is: True
+---
+id: motion to alter
+question: |
+  'Was a Motion to Alter or Amend Judgment (Rule 59) filed?'
+fields:
+  - '': motion_to_alter_is_filed_yes
+    datatype: yesno
+  - 'When was it served (not filed)?': motion_to_alter_served_date
+    datatype: date
+    show if:
+      variable: motion_to_amend_is_filed
+      is: True
+---
+id: motion for relief
+question: |
+  'Was a Motion for Relief from Judgment (Rule 60) filed?'
+fields:
+  - '': motion_for_relief_from_judgment_is_filed
+    datatype: yesno
+  - 'When was it served (not filed)?': motion_for_relief_from_judgment_served_date
+    datatype: date
+    show if:
+      variable: motion_for_relief_from_judgment_is_filed
+      is: True
+---
+id: other_motions
+question: |
+  Were there any other types of motions filed?
+fields:
+  - '': other_type_of_motion_is_filed
+    datatype: yesno
+  - What was the other type of motion filed?: other_type_of_motion
+    maxlength: 17
+    show if:
+      variable: other_type_of_motion_is_filed
+      is: True
+  - When was it served (not filed)?: other_type_of_motion_served_date
+    datatype: date
+    show if:
+      variable: other_type_of_motion_is_filed
+      is: True
+---
+id: Appellate Issues
+question: |
+  Please provide a short statement of anticipated issues on appeal
+subquestion: |
+  If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.
+fields:
+  - 'Statement': statement_of_anticipated_issues
+    input type: area
+    maxlength: 728
+---
+id: Related Appeals
+question: |
+  Related Appeals
+subquestion: |
+  Are there any pending, past, or anticipated future appeals or original appellate proceedings that involve these parties or this case which have been entered in the Appeals Court or Supreme Judicial Court?
+yesno: party_proceedings_exist
+---
+id: related issues
+question: |
+  Do you know of any pending or anticipated appeals raising related issues?
+yesno: related_appeals_exist
+---
+code: |
+  if not related_appeals_exist and not party_proceedings_exist:
+    party_proceedings_and_related_issues = 'N/A'
+---
+id: related appeals details
+question: |
+  Provide the case name and docket number and describe below the related matter or issue
+fields:
+  - '': party_proceedings_and_related_issues
+    input type: area
+    maxlength: 546
+---
+id: Certificate of Service
+question: |
+  Certificate of Service
+subquestion: |
+  Pursuant to Mass.R.A.P. 13(d), I hereby certify, under the penalties of perjury, that on this date of  I have made service of a copy of the Massachusetts Appeals Court Docketing Statement filed on behalf of      , upon the attorney of record for each party, or if the party has no attorney then I made service directly to the self-represented party, by hand delivery, first class mail, or email, to the following person(s) and at the following address(es). Note: Service may be made by e-mail only with the consent of each party or opposing counsel
+fields:
+  - 'the self-represented party has been served via': have_served_other_party
+    choices:
+      - hand delivery
+      - first class mail
+      - e-mail
+---
+progress: 100
+mandatory: True
+id: Your form is ready to download and file
+question: |
+  Your form is ready to download and file
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  Below is a preview of your form.
+  
+  ${pdf_concatenate(civil_docketing_statement_attachment['final'], filename='civil_docketing_statement.pdf') }
+need: civil_docketing_statement
+attachment code: civil_docketing_statement_attachment['final']
+---
+objects:
+  - civil_docketing_statement_attachment: DADict
+---
+attachment:
+    variable name: civil_docketing_statement_attachment[i]
+    name: Civil Docketing
+    filename: Civil_Docketing
+    skip undefined: True
+    pdf template file: civil_docketing_statement.pdf
+    fields: 
+      - "docket_number": ${ docket_numbers }
+      - "plaintiff": ${ plaintiffs }
+      - "defendant": ${ defendants }
+      - "user": ${ users }
+      - "attorney": ${ attorneys }
+      - "user__2": ${ users }
+      - "user__3": ${ users }
+      # If it is a signature, test which file version we're expecting. leave it empty unless it's the final attachment version
+      - "user_signature": ${ users[0].signature if i == 'final' else '' }
+      - "user_address_block": ${ users[0].address.block() }
+      - "signature_date": ${ signature_date }
+      - "user__4": ${ users }
+      - "other_party": ${ other_parties }
+      - "user_phone": ${ users[0].phone_number }
+      # If it is a signature, test which file version we're expecting. leave it empty unless it's the final attachment version
+      - "user_signature__1": ${ users[0].signature if i == 'final' else '' }
+      - "user_address_block__1": ${ users[0].address.block() }
+      - "attorney_bbo": ${ attorney_bbo }
+      - "user_is_self_represented": ${ not user_has_attorney }
+      - "trial_court_name": ${ trial_court_name }
+      - "trial_court_docket_number": ${ trial_court_docket_number }
+      - "judge0": ${ judge0 }
+      - "judge0_role": ${ judge0_role }
+      - "judge1": ${ judge1 }
+      - "judge1_role": ${ judge1_role }
+      - "judge2_role": ${ judge2_role }
+      - "judge2": ${ judge2 }
+      - "case_info_was_impounded_no": ${ not case_info_was_impounded }
+      - "case_info_was_impounded_yes": ${ case_info_was_impounded }
+      - "case_info_impoundment_details": ${ case_info_impoundment_details }
+      - "nature_of_case": ${ nature_of_case }
+      - "is_final_judgment_yes": ${ is_final_judgment }
+      - "is_final_judgment_no": ${ not is_final_judgment }
+      - "interlocutory_appeal_reason": |
+          % if not is_final_judgment:
+            return interlocutory_appeal_reason
+          % else:
+            N/A
+          % endif
+      - "order_docketing_date": ${ order_docketing_date }
+      - "notice_of_appeal_date": ${ notice_of_appeal_date }
+      - "motion_for_judgment_is_filed_yes": ${ motion_for_judgment_is_filed }
+      - "motion_for_judgment_is_filed_no": ${ not motion_for_judgment_is_filed }
+      - "motion_for_judgment_served_date": ${ motion_for_judgment_served_date }
+      - "motion_to_amend_is_filed_yes": ${ motion_to_amend_is_filed }
+      - "motion_to_amend_is_filed_no": ${ not motion_to_amend_is_filed }
+      - "motion_to_amend_served_date": ${ motion_to_amend_served_date }
+      - "motion_to_alter_is_filed_yes": ${ motion_to_alter_is_filed }
+      - "motion_to_alter_is_filed_no": ${ not motion_to_alter_is_filed }
+      - "motion_to_alter_served_date": ${ motion_to_alter_served_date }
+      - "motion_for_relief_from_judgment_is_filed_yes": ${ motion_for_relief_from_judgment_is_filed }
+      - "motion_for_relief_from_judgment_is_filed_no": ${ not motion_for_relief_from_judgment_is_filed }
+      - "motion_for_relief_from_judgment_served_date": ${ motion_for_relief_from_judgment_served_date }
+      - "other_type_of_motion_is_filed_yes": ${ other_type_of_motion_is_filed }
+      - "other_type_of_motion_is_filed_no": ${ not other_type_of_motion_is_filed }
+      - "other_type_of_motion": ${ other_type_of_motion }
+      - "other_type_of_motion_served_date": ${ other_type_of_motion_served_date }
+      - "statement_of_anticipated_issues": ${ statement_of_anticipated_issues }
+      - "party_proceedings_exist_yes": ${ party_proceedings_exist }
+      - "party_proceedings_exist_no": ${ not party_proceedings_exist }
+      - "related_appeals_exist_yes": ${ related_appeals_exist }
+      - "related_appeals_exist_no": ${ not related_appeals_exist }
+      - "party_proceedings_and_related_issues": ${ party_proceedings_and_related_issues }
+      - "attorney_bbo__1": ${ attorney_bbo }
+      - "have_served_other_party_hand_delivery": ${ have_served_other_party == 'hand delivery' }
+      - "have_served_other_party_first_class_mail": ${ have_served_other_party == 'first class mail' }
+      - "have_served_other_party_email": ${ have_served_other_party == 'e-mail' }
+---
+id: civil_docketing_statement review screen
+event: review_civil_docketing_statement
+question: |
+  Placeholder Review Screen
+subquestion: |
+  Edit your answers below
+review: 
+  - Edit: attorney_bbo
+    button: |
+      Attorney BBO Number:
+      ${ attorney_bbo }
+  - Edit: user_has_attorney
+    button: |
+      Are you self-represented?:
+      ${ word(yesno(user_has_attorney)) }
+  - Edit: trial_court_name
+    button: |
+      What is the name of the lower court of the original case?:
+      ${ trial_court_name }
+  - Edit: trial_court_docket_number
+    button: |
+      What was the docket number of the original case in the lower court?:
+      ${ trial_court_docket_number }
+  - Edit: judge0
+    button: |
+      First and last name of the first judge:
+      ${ judge0 }
+  - Edit: judge0_role
+    button: |
+      First Judge role (SHOULD BE DROPDOWN):
+      ${ judge0_role }
+  - Edit: judge1
+    button: |
+      First and last name of the second judge:
+      ${ judge1 }
+  - Edit: judge1_role
+    button: |
+      Second judge role (SHOULD BE DROPDOWN):
+      ${ judge1_role }
+  - Edit: judge2_role
+    button: |
+      First and last name of third judge:
+      ${ judge2_role }
+  - Edit: judge2
+    button: |
+      Third judge role (SHOULD BE DROPDOWN):
+      ${ judge2 }
+  - Edit: case_info_was_impounded
+    button: |
+      Was the case or any information in the record designated as impounded in the lower court?:
+      ${ word(yesno(case_info_was_impounded_no)) }
+  - Edit: case_info_impoundment_details
+    button: |
+      If this case or any material therein is impounded, specify which documents are impounded and the authority for impoundment, e.g. court order, statute:
+      > ${ single_paragraph(case_info_impoundment_details) }
+  - Edit: nature_of_case
+    button: |
+      Nature of case (SHOULD BE DROPDOWN w/ OPTIONAL):
+      ${ nature_of_case }
+  - Edit: is_final_judgment
+    button: |
+      Is the appeal from a final judgment, i.e., judgment disposing of all parties and claims?:
+      ${ word(yesno(is_final_judgment_yes)) }
+  - Edit: interlocutory_appeal_reason
+    button: |
+      dentify the basis on which the interlocutory order is immediately appealable (SHOULD BE DROPDOWN):
+      ${ interlocutory_appeal_reason }
+  - Edit: order_docketing_date
+    button: |
+      Docketing date of judgment or Interlocutory Order appealed:
+      ${ order_docketing_date.format() }
+  - Edit: notice_of_appeal_date
+    button: |
+      Date notice of appeal was Filed:
+      ${ notice_of_appeal_date.format() }
+  - Edit: motion_for_judgment_is_filed
+    button: |
+      Was a Motion for Judgement (Rule 50(b)) Notwithstanding the Verdict filed?:
+      ${ word(yesno(motion_for_judgment_is_filed)) }
+  - Edit: motion_for_judgment_served_date
+    button: |
+      Date of motion for judgment served:
+      ${ motion_for_judgment_served_date.format() }
+  - Edit: motion_to_amend_is_filed
+    button: |
+      Was a Motion to Amend or Make Additional Findings (Rule 52(b)) filed?:
+      ${ word(yesno(motion_to_amend_is_filed)) }
+  - Edit: motion_to_amend_served_date
+    button: |
+      Date of motion to amend served:
+      ${ motion_to_amend_served_date.format() }
+  - Edit: motion_to_alter_is_filed
+    button: |
+      Was a Motion to Alter or Amend Judgment (Rule 59) filed?:
+      ${ word(yesno(motion_to_alter_is_filed)) }
+  - Edit: motion_to_alter_served_date
+    button: |
+      Date of motion to alter served:
+      ${ motion_to_alter_served_date.format() }
+  - Edit: motion_for_relief_from_judgment_is_filed
+    button: |
+      Was a Motion for Relief from Judgment (Rule 60) filed?:
+      ${ word(yesno(motion_for_relief_from_judgment_is_filed)) }
+  - Edit: motion_for_relief_from_judgment_served_date
+    button: |
+      Date of motion for relief from judgment served:
+      ${ motion_for_relief_from_judgment_served_date.format() }
+  - Edit: other_type_of_motion_is_filed
+    button: |
+      Were there any other types of motions filed?:
+      ${ word(yesno(other_type_of_motion_is_filed)) }
+  - Edit: other_type_of_motion
+    button: |
+      What was the other type of motion filed?:
+      ${ other_type_of_motion }
+  - Edit: other_type_of_motion_served_date
+    button: |
+      Date of other type of motion served:
+      ${ other_type_of_motion_served_date.format() }
+  - Edit: statement_of_anticipated_issues
+    button: |
+      In cases other than child welfare appeals, please provide a short statement of the anticipated issues on appeal.  If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation.  (Note: This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.):
+      > ${ single_paragraph(statement_of_anticipated_issues) }
+  - Edit: party_proceedings_exist
+    button: |
+      Are there any pending, past, or anticipated future appeals or original appellate proceedings that involve these parties or this case which have been entered in the Appeals Court or Supreme Judicial Court?:
+      ${ word(yesno(party_proceedings_exist)) }
+  - Edit: related_appeals_exist
+    button: |
+      Do you know of any pending or anticipated appeals raising related issues?:
+      ${ word(yesno(related_appeals_exist)) }
+  - Edit: party_proceedings_and_related_issues
+    button: |
+      provide the case name and docket number and describe below the related matter or issue:
+      ${ party_proceedings_and_related_issues }
+  - Edit: have_served_other_party_hand_delivery
+    button: |
+      I made service directly to the self-represented party (SHOULD BE DROPDOWN):
+      ${ word(yesno(have_served_other_party_hand_delivery)) }
+  - Edit: have_served_other_party_first_class_mail
+    button: |
+      Have served other party first class mail (REDUNDANT):
+      ${ word(yesno(have_served_other_party_first_class_mail)) }
+  - Edit: have_served_other_party_email
+    button: |
+      Have served other party email (REDUNDANT):
+      ${ word(yesno(have_served_other_party_email)) }
+  - Edit: docket_numbers
+    button: |
+      docket_numbers:
+      ${ docket_numbers }
+  - Edit: plaintiffs
+    button: |
+      plaintiffs:
+      ${ plaintiffs }
+  - Edit: defendants
+    button: |
+      defendants:
+      ${ defendants }
+  - Edit: users
+    button: |
+      users:
+      ${ users }
+  - Edit: attorneys
+    button: |
+      attorneys:
+      ${ attorneys }
+  - Edit: users[0].signature
+    button: |
+      users[0].signature:
+      ${ users[0].signature }
+  - Edit: users[0].address.address
+    button: |
+      users[0].address.address:
+      ${ users[0].address.address }
+  - Edit: signature_date
+    button: |
+      signature_date:
+      ${ signature_date }
+  - Edit: other_parties
+    button: |
+      other_parties:
+      ${ other_parties }
+  - Edit: users[0].phone_number
+    button: |
+      users[0].phone_number:
+      ${ users[0].phone_number }
