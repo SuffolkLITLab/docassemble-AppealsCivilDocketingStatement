@@ -207,7 +207,7 @@ id: Nature of the Case
 question: |
   Select the most appropriate description of the case. 
 fields:
-  - 'Nature of case': nature_of_case
+  - no label: nature_of_case
     choices:
       - Abuse Prevention Order
       - Administrative Law
@@ -275,14 +275,14 @@ id: docketing_date of order
 question: |
   When was the judgment or interlocutory order being appealed docketed?
 fields:
-  - Docketing Date: order_docketing_date
+  - no label: order_docketing_date
     datatype: date
 ---
 id: notice of appeal date
 question: |
   When was the notice of the appeal filed?
 fields:
-  - Notice of Appeal Date: notice_of_appeal_date
+  - no label: notice_of_appeal_date
     datatype: date
     max: ${ today() }
 ---
@@ -299,7 +299,7 @@ question: |
   'Motion for Judgment (Rule 50(b))'
 fields:
   - 'Was a Motion for Judgment (notwithstanding the verdict) filed?': motion_for_judgment_is_filed
-    datatype: yesno
+    datatype: yesnoradio
   - 'When was it served (not filed)?': motion_for_judgment_served_date
     datatype: date
     max: ${ today() }
@@ -310,7 +310,7 @@ question: |
   'Motion to Amend or Make Additional Findings (Rule 52(b))'
 fields: 
   - 'Was a Motion to Amend or Make Additional Findings filed?': motion_to_amend_is_filed
-    datatype: yesno
+    datatype: yesnoradio
   - 'When was it served (not filed)': motion_to_amend_served_date
     datatype: date
     max: ${ today() }
@@ -321,7 +321,7 @@ question: |
   'Motion to Alter or Amend Judgment (Rule 59)'
 fields:
   - 'Was a Motion to Alter or Amend Judgment filed?': motion_to_alter_is_filed
-    datatype: yesno
+    datatype: yesnoradio
   - 'When was it served (not filed)?': motion_to_alter_served_date
     datatype: date
     max: ${ today() }
@@ -332,7 +332,7 @@ question: |
   'Motion for Relief from Judgment (Rule 60)'
 fields:
   - 'Was a Motion for Relief from Judgment filed?': motion_for_relief_from_judgment_is_filed
-    datatype: yesno
+    datatype: yesnoradio
   - 'When was it served (not filed)?': motion_for_relief_from_judgment_served_date
     datatype: date
     show if: motion_for_relief_from_judgment_is_filed
@@ -342,7 +342,7 @@ question: |
   Other types of motions?
 fields:
   - 'Was there another post-judgment motion filed?': other_type_of_motion_is_filed
-    datatype: yesno
+    datatype: yesnoradio
   - What was the other type of motion filed?: other_type_of_motion
     maxlength: 17
     show if: other_type_of_motion_is_filed
@@ -365,7 +365,7 @@ question: |
 subquestion: |
   If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.
 fields:
-  - 'Statement': statement_of_anticipated_issues
+  - no label: statement_of_anticipated_issues
     input type: area
     maxlength: 728
 ---
@@ -385,7 +385,7 @@ id: related appeals details
 question: |
   Provide the case name and docket number and describe below the related matter or issue
 fields:
-  - '': party_proceedings_and_related_issues
+  - no label: party_proceedings_and_related_issues
     input type: area
     maxlength: 546
 ---
@@ -434,7 +434,7 @@ attachment:
       - "defendant": ${ defendants }
       - "user": ${ users }
       - "attorney": ${ attorneys }
-      - "user__2": ${ users }
+      - "user__2": ${ users if attorneys.number_gathered() == 0 else 'N/A' }
       - "user__3": ${ users }
       # If it is a signature, test which file version we're expecting. leave it empty unless it's the final attachment version
       - "user_signature": ${ users[0].signature if i == 'final' else '' }
@@ -442,7 +442,7 @@ attachment:
       - "signature_date": ${ signature_date }
       - "user__4": ${ users }
       - "other_party": ${ other_parties }
-      - "user_phone": ${ users[0].phone_number }
+      - "user_phone": ${ users[0].sms_number() }
       # If it is a signature, test which file version we're expecting. leave it empty unless it's the final attachment version
       - "user_signature__1": ${ users[0].signature if i == 'final' else '' }
       - "user_address_block__1": ${ users[0].address.block() }
