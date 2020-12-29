@@ -1,5 +1,6 @@
 include:
   - docassemble.MAVirtualCourt:basic-questions.yml
+  - docassemble.MassAppealsCourt:appeals-basic-questions.yml
 ---
 comment: |
   The metadata section controls the tab title and saved interview title. You can delete this section if you include this YAML file in another YAML file.
@@ -40,11 +41,14 @@ features:
 sections:
   - review_civil_docketing_statement: Review your answers
 ---
+code: |
+  interview_short_title = interview_metadata['civil_docketing_statement']['title']
+---
 mandatory: True
 id: interview_order_civil_docketing_statement
 code: |
   # This is a placeholder to control logic flow in this interview
-  basic_questions_intro_screen 
+  appeals_basic_questions_intro_screen 
   civil_docketing_statement_intro
   # Set the allowed courts for this interview
   allowed_courts = interview_metadata["civil_docketing_statement"]["allowed courts"]
@@ -52,10 +56,17 @@ code: |
   # Below sets the user_role by asking a question.
   # You can set user_role directly instead to either 'plaintiff' or 'defendant'
   # user_ask_role
+  users.gather()
   attorneys.complete_attribute = 'bbo'
   attorneys.gather()
-  trial_court_name
+  plaintiffs.gather()
+  defendants.gather()
+  other_parties.gather()
+  
+  
+  decision_maker_name
   trial_court_docket_number
+  statement_of_anticipated_issues
   case_info_was_impounded
   case_info_impoundment_details
   judges.complete_attribute = 'role'
@@ -70,7 +81,6 @@ code: |
   motion_for_relief_from_judgment_is_filed
   other_type_of_motion_is_filed
   set_progress(10.0)
-  statement_of_anticipated_issues
   party_proceedings_exist
   related_appeals_exist
   have_served_other_party
@@ -78,15 +88,11 @@ code: |
   set_parts(subtitle=str(users))
   docket_numbers.gather()
   set_progress(20.0)
-  plaintiffs.gather()
-  defendants.gather()
-  users.gather()
-  set_progress(30.0)
+  
   users[0].address.block()
+  users[0].phone_number
   signature_date
   set_progress(40.0)
-  other_parties.gather()
-  users[0].phone_number
   # Save (anonymized) interview statistics.
   store_variables_snapshot(data={'zip': users[0].address.zip})
   civil_docketing_statement_preview_question # Pre-canned preview screen
@@ -101,7 +107,9 @@ continue button field: civil_docketing_statement_intro
 question: |
   Civil Docketing Statement
 subquestion: |
-  This page will help you to fill out a Civil Docketing Statement to the Appeals Court. If you are appealing a judgment of your case, you should submit this form within 14 days of {starting the appeal}.
+  This page will help you to fill out a Civil Docketing Statement to the Appeals Court. If you are appealing a judgment of your case, you should submit this form within 14 days of the Notice of Entry of the Appeal.
+  
+  It helps to have court information about your lower court case being appealed with you now, as you complete this form.
 terms:
   appellant: |
     The party of the lower court case who is appealing the lower court's decision
@@ -173,32 +181,82 @@ fields:
       - Reported Case or Question
       - Trial Judge
 ---
-id: Lower Court Board name
+id: Whos decision are you appealing
 question: |
-  What was the lower court's department name in the original case?
+  Are you appealing the decision of a {trial court}, a {board}, or an {agency}?
+terms:
+  trial court: |
+    This is the court that made the decision you are appealing, e.g. the District Court, Housing Court, or Probate and Family Court.
+  board: |
+    These are state boards, such as the [Board of Appeal](https://www.mass.gov/the-board-of-appeal), or the MassHealth Board of Hearings. 
+  agency: |
+    These are [state administrative agencies](https://www.mass.gov/service-details/learn-about-appeals-from-administrative-agency-decisions-under-general-laws-c30a). 
+    For example, decisions from the [Department of Children and Families (DCF)](https://www.mass.gov/orgs/massachusetts-department-of-children-families), or the [Department of Transitional Assistance (DTA)](https://www.mass.gov/orgs/department-of-transitional-assistance).
 fields:
-  - Department name: trial_court_name
+  - no label: appealed_decision_maker
+    code: |
+        decision_makers
+---
+code: |
+  readable_deciders = {'trial_court': 'Trial court',
+                       'board': 'Board',
+                       'agency': 'Agency'}
+  decision_makers = [{it[0]: it[1]} for it in readable_deciders.items()]
+---
+if: |
+  appealed_decision_maker == 'trial_court'
+question: |
+  Which court made the decision that you are appealing?
+fields:
+  - no label: decision_maker_name
+    choices:
+      - Boston Municipal Court
+      - District Court
+      - Housing Court
+      - Probate and Family Court
+      - Juvenile Court
+      - Land Court
+      - Superior Court
+      - Other
+  - Specify: decision_maker_name
+    maxlength: 96
+    js show if: |
+      val('decision_maker_name') === 'Other'
+---
+if: |
+  appealed_decision_maker == 'agency' or appealed_decision_maker == 'board'
+question: |
+  Which ${ decision_makers[appealed_decision_maker] } made the decision that you are appealing?
+fields:
+  - no label: decision_maker_name
     maxlength: 96
 ---
 id: Lower Court docket number
 question: |
-  What was the docket number of the original case in the ${ trial_court_name } court?
+  What was the docket number of the original case in the ${ decision_maker_name }?
 fields:
   - "Docket number": trial_court_docket_number
     maxlength: 96
 ---
 id: Anything Impounded
 question: |
-  Was the original case impounded in the lower count?
+  Was the original case or any of its information impounded by the ${ decision_maker_name }?
+subquestion: |
+  Impounded includes any portion of the record that is
+
+  * impounded
+  * sealed
+  * deemed confidential
+  * excluded from public access by statue, court order, rule, or standing order
 yesno: case_info_was_impounded
+help label: |
+  More Info
 help: |
-  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
-  
   Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on Impoundment Procedure Rule 12(c), Supreme Judicial Court Rule 1:15 s. 2(c), and M.R.A.P. 16(d), 16(m), 18(a), and 18(g).
 ---
 id: Impounded Information
 question: |
-  Which documents were impounded, and for what reasons (e.g. court order, statue)?
+  Which documents were impounded, and for what reasons (e.g. court order, statute)?
 fields:
   - 'Document details': case_info_impoundment_details
     input type: area
@@ -457,8 +515,8 @@ attachment:
       - "user_signature__1": ${ users[0].signature if i == 'final' else '' }
       - "user_address_block__1": ${ users[0].address.block() }
       - "attorney_bbo": ${ ','.join([att.bbo for att in attorneys.complete_elements()]) if attorneys.number_gathered() > 0 else 'N/A' }
-      - "user_is_self_represented": ${ not user_has_attorney }
-      - "trial_court_name": ${ trial_court_name }
+      - "user_is_self_represented": ${ attorneys.number_gathered() == 0 }
+      - "trial_court_name": ${ decision_maker_name }
       - "trial_court_docket_number": ${ trial_court_docket_number }
       - "judge0": ${ judges[0].name }
       - "judge0_role": ${ judges[0].role }
@@ -502,27 +560,64 @@ attachment:
       - "have_served_other_party_first_class_mail": ${ have_served_other_party == 'first class mail' }
       - "have_served_other_party_email": ${ have_served_other_party == 'e-mail' }
 ---
+field: judge.revisit
+question: |
+  Edit the judges
+subquestion: |
+  ${ judges.table }
+  
+  ${ judges.add_action() }
+---
 id: civil_docketing_statement review screen
 event: review_civil_docketing_statement
 question: |
   Placeholder Review Screen
 subquestion: |
   Edit your answers below
-review: 
-  - Edit: trial_court_name
+review:
+  - Edit: plaintiffs
     button: |
-      What is the name of the lower court of the original case?:
-      ${ trial_court_name }
-  - Edit: trial_court_docket_number
+      plaintiffs:
+      ${ plaintiffs }
+  - Edit: defendants
     button: |
-      What was the docket number of the original case in the lower court?:
-      ${ trial_court_docket_number }
+      defendants:
+      ${ defendants }
+  - Edit: users
+    button: |
+      users:
+      ${ users }
+  - Edit: other_parties
+    button: |
+      other_parties:
+      ${ other_parties }
+  - Edit: attorneys
+    button: |
+      **Attorneys**:
+      
+      % for att in attorneys:
+      - ${ att }, *BBO*: ${ att.bbo }
+      %endfor
+      -------------------------------------
   - Edit: judges.revisit
     button: |
-      Judges are:
-      % for j in judge:
-      * ${ j } : ${ j.role}
+      **Judges**:
+      
+      % for jud in judges:
+      * ${ jud } (${ jud.role})
       %endfor
+  - label: Edit
+    fields:
+      - appealed_decision_maker
+      - recompute:
+        - decision_maker_name
+    button: |
+      ${ decision_makers[appealed_decision_maker] } name:
+      ${ decision_maker_name }
+  - Edit: trial_court_docket_number
+    button: |
+      Original Case Docket Number:
+      ${ trial_court_docket_number }
   - label: Edit
     fields:
       - case_info_was_impounded
@@ -539,17 +634,21 @@ review:
     button: |
       Nature of case:
       ${ nature_of_case }
-  - Edit: is_final_judgment
+  - label: Edit
+    fields:
+      - is_final_judgment
+      - recompute:
+        - interlocutory_appeal_reason
     button: |
-      Is the appeal from a final judgment, i.e., judgment disposing of all parties and claims?:
-      ${ word(yesno(is_final_judgment_yes)) }
-  - Edit: interlocutory_appeal_reason
-    button: |
-      dentify the basis on which the interlocutory order is immediately appealable:
-      ${ interlocutory_appeal_reason }
+      % if not is_final_judgment:
+      Interlocutory Order is appealable because:
+      > ${ interlocutory_appeal_reason }
+      % else:
+      Appeal is from final Judgment.
+      % endif
   - Edit: order_docketing_date
     button: |
-      Docketing date of judgment or Interlocutory Order appealed:
+      Docketing date of Order appealed:
       ${ order_docketing_date.format() }
   - Edit: notice_of_appeal_date
     button: |
@@ -562,10 +661,10 @@ review:
         - motion_for_judgment_served_date
     button: |
       % if motion_for_judgment_is_filed:
-      Motion for Judgment Notwithstanding the Verdict served on:
+      Motion for Judgment served on:
       ${ motion_for_judgment_served_date.format() }
       % else:
-      No motion for Judgment Notwithstanding the Verdict filed
+      No motion for Judgment filed
       % endif
   - Edit: motion_for_judgment_served_date
     button: |
@@ -636,25 +735,6 @@ review:
     button: |
       docket_numbers:
       ${ docket_numbers }
-  - Edit: plaintiffs
-    button: |
-      plaintiffs:
-      ${ plaintiffs }
-  - Edit: defendants
-    button: |
-      defendants:
-      ${ defendants }
-  - Edit: users
-    button: |
-      users:
-      ${ users }
-  - Edit: attorneys
-    button: |
-      **Attorneys**:
-      
-      % for att in attorneys:
-      - Name: ${ att }, BBO: ${ att.bbo }
-      %endfor
   - Edit: users[0].signature
     button: |
       users[0].signature:
@@ -667,11 +747,47 @@ review:
     button: |
       signature_date:
       ${ signature_date }
-  - Edit: other_parties
-    button: |
-      other_parties:
-      ${ other_parties }
   - Edit: users[0].phone_number
     button: |
       users[0].phone_number:
       ${ users[0].phone_number }
+
+
+
+
+---
+comment: |
+  TODO(brycew): REMOVE, this should go in Appeals Court package
+id: user role
+question: |
+  In the trial court, did you file the first forms, or did you respond to a case that someone else started?
+fields:
+  - no label: user_ask_role
+    datatype: radio
+    choices:
+      - I started the case: plaintiff
+      - I responded to the case: defendant
+  - note: |
+      Okay, you are the **Plaintiff** or Petitioner in the trial court. The other
+      side is the **Defendant** or Respondent.
+    show if:
+      variable: user_ask_role
+      is: "plaintiff"
+  - note: |
+      Okay, you are the **Defendant** or Respondent in the trial court. The other
+      side is the **Plaintiff** or Petitioner.
+    show if:
+      variable: user_ask_role
+      is: "defendant"
+help:
+  label: |
+    How do I know?
+  content: |
+    If you are the first person to file a form in the case, you are the
+    "Plaintiff" or the "Petitioner."
+    If you are responding to a case or court papers someone else filed, you are
+    the "Defendant" or the "Respondent."
+
+
+
+
