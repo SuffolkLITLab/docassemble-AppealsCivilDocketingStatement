@@ -12,7 +12,7 @@ metadata:
 ---
 objects:
   - judges: |
-      DAList.using(object_type=Individual, ask_number=True)
+      DAList.using(object_type=Individual)
 ---
 comment: |
   This section is used by MAVirtualCourts to control how some of the questions work.
@@ -63,7 +63,6 @@ code: |
   defendants.gather()
   other_parties.gather()
   
-  
   decision_maker_name
   trial_court_docket_number
   statement_of_anticipated_issues
@@ -83,7 +82,7 @@ code: |
   set_progress(10.0)
   party_proceedings_exist
   related_appeals_exist
-  have_served_other_party
+  served_other_party
   # Set the answer file name.
   set_parts(subtitle=str(users))
   docket_numbers.gather()
@@ -145,17 +144,6 @@ fields:
   - BBO number: attorneys[i].bbo
     required: True
 ---
-id: Judges on the lower case
-question: |
-  How many judges gave orders that are being appealed?
-subquestion: |
- If the appeal is directly from a board or agency, this number should be 0.
-fields:
-  - Number of Judges: judges.target_number
-    datatype: integer
-    min: 0
-    max: 3
----
 id: "Judge's name"
 question: |
   What is the name of the ${ ordinal(i) } judge?
@@ -181,9 +169,28 @@ fields:
       - Reported Case or Question
       - Trial Judge
 ---
+id: Judges on the lower case
+question: |
+  Were there any judges involved in the issues that you are appealing?
+yesno: judges.there_are_any
+---
+id: more judges
+question: |
+  Were any other judges involved in the issues that you are appealing?
+subquestion: |
+  So far, you have mentioned ${ judges.comma_and_list() }. 
+yesno: judges.there_is_another
+---
+code: |
+  # There are no judges when appealing agency or board decisions.
+  if appealed_decision_maker == 'agency' or appealed_decision_maker == 'board':
+    judges.there_are_any = False
+---
 id: Whos decision are you appealing
 question: |
   Are you appealing the decision of a {trial court}, a {board}, or an {agency}?
+subquestion: |
+  You should only be appealing the last decision made in the case: e.g. if a decision from a board or agency was heard by the superior court, and you are appealing that decision, then you are appealing the court's decision, not the boards.
 terms:
   trial court: |
     This is the court that made the decision you are appealing, e.g. the District Court, Housing Court, or Probate and Family Court.
@@ -226,7 +233,7 @@ fields:
 if: |
   appealed_decision_maker == 'agency' or appealed_decision_maker == 'board'
 question: |
-  Which ${ decision_makers[appealed_decision_maker] } made the decision that you are appealing?
+  Which ${ readable_deciders[appealed_decision_maker] } made the decision that you are appealing?
 fields:
   - no label: decision_maker_name
     maxlength: 96
@@ -240,30 +247,25 @@ fields:
 ---
 id: Anything Impounded
 question: |
-  Was the original case or any of its information impounded by the ${ decision_maker_name }?
+  Is there any part of the original ${ decision_maker_name } case that is not public?
 subquestion: |
-  Impounded includes any portion of the record that is
+  This includes any portion of the case or information in the record that is
 
   * impounded
   * sealed
   * deemed confidential
   * excluded from public access by statue, court order, rule, or standing order
-yesno: case_info_was_impounded
+fields: 
+  - Some part of the case was impounded: case_info_was_impounded
+    datatype: yesno
+  - 'Which documents are not public, and for what reasons (e.g. court order, statute)?': case_info_impoundment_details
+    input type: area
+    maxlength: 910
+    show if: case_info_was_impounded
+    
 help label: |
   More Info
 help: |
-  Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on Impoundment Procedure Rule 12(c), Supreme Judicial Court Rule 1:15 s. 2(c), and M.R.A.P. 16(d), 16(m), 18(a), and 18(g).
----
-id: Impounded Information
-question: |
-  Which documents were impounded, and for what reasons (e.g. court order, statute)?
-fields:
-  - 'Document details': case_info_impoundment_details
-    input type: area
-    maxlength: 910
-help: |
-  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
-  
   Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on Impoundment Procedure Rule 12(c), Supreme Judicial Court Rule 1:15 s. 2(c), and M.R.A.P. 16(d), 16(m), 18(a), and 18(g).
 ---
 depends on: case_info_was_impounded
@@ -429,9 +431,9 @@ code: |
 ---
 id: Appellate Issues
 question: |
-  Provide a short statement of anticipated issues on appeal
+  Provide a short statement explaining why you are appealing
 subquestion: |
-  If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. This statement is for informational purposes only; you will be able to raise other issues in the brief, even if you do not raise them here
+  If the appellate issue involves a particular statute or regulation, please provide a citation to that statute or regulation. This is for informational purposes only; you will be able to raise other issues later, even if you do not raise them here
 fields:
   - no label: statement_of_anticipated_issues
     input type: area
@@ -461,17 +463,31 @@ code: |
   if not related_appeals_exist and not party_proceedings_exist:
     party_proceedings_and_related_issues = 'N/A'
 ---
-id: Certificate of Service
+id: method of service
 question: |
-  Certificate of Service
+  What **method of delivery** have you used or will you use to provide the required copies of the petition, memorandum and supporting materials to the plaintiffs' attorney(s)?
 subquestion: |
-  Pursuant to Mass.R.A.P. 13(d), I hereby certify, under the penalties of perjury, that I have made service of a copy of the Massachusetts Appeals Court Docketing Statement filed on behalf of      , upon the attorney of record for each party, or if the party has no attorney then I made service directly to the self-represented party, by hand delivery, first class mail, or email, to the following person(s) and at the following address(es). Note: Service may be made by e-mail only with the consent of each party or opposing counsel
+  **You are required to provide a copy of this petition, memorandum and supporting materials to the plaintiffs' attorney(s).** 
+  
+  If the plaintiff does not have an attorney, you are required to serve a copy on the self-represented plaintiff.  
+  
+  You should not provide a copy of your affidavit of indigency, if any, to anyone except the Appeals Court.  
+field: served_other_party
+dropdown:
+  - efile and serve (efilema.com)
+  - email
+  - mail
+  - hand delivery
+---
+id: parties to be served
+question: |
+  List the name and address or email address of each attorney or self-represented party that you have served or will serve with copies of your petition, memorandum and supporting materials.
+subquestion: |
+  If you are serving more than one attorney or party, you may list more than one in the space provided.
 fields:
-  - 'the self-represented party has been served via': have_served_other_party
-    choices:
-      - hand delivery
-      - first class mail
-      - e-mail
+  - no label: parties_to_be_served
+    input type: area 
+    rows: 6
 ---
 progress: 100
 mandatory: True
@@ -518,12 +534,12 @@ attachment:
       - "user_is_self_represented": ${ attorneys.number_gathered() == 0 }
       - "trial_court_name": ${ decision_maker_name }
       - "trial_court_docket_number": ${ trial_court_docket_number }
-      - "judge0": ${ judges[0].name }
-      - "judge0_role": ${ judges[0].role }
-      - "judge1": ${ judges[1].name }
-      - "judge1_role": ${ judges[1].role }
-      - "judge2_role": ${ judges[2].role }
-      - "judge2": ${ judges[2] }
+      - "judge0": ${ judges[0].name if judges.number() > 0 else 'N/A' }
+      - "judge0_role": ${ judges[0].role if judges.number() > 0 else 'N/A' }
+      - "judge1": ${ judges[1].name if judges.number() > 1 else 'N/A' }
+      - "judge1_role": ${ judges[1].role if judges.number() > 1 else 'N/A'}
+      - "judge2_role": ${ judges[2].role if judges.number() > 2 else 'N/A'}
+      - "judge2": ${ judges[2].name if judges.number() > 2 else 'N/A' }
       - "case_info_was_impounded_no": ${ not case_info_was_impounded }
       - "case_info_was_impounded_yes": ${ case_info_was_impounded }
       - "case_info_impoundment_details": ${ case_info_impoundment_details }
@@ -556,9 +572,9 @@ attachment:
       - "related_appeals_exist_no": ${ not related_appeals_exist }
       - "party_proceedings_and_related_issues": ${ party_proceedings_and_related_issues }
       - "attorney_bbo__1": ${ ','.join([att.bbo for att in attorneys.complete_elements()]) if attorneys.number_gathered() > 0 else 'N/A' }
-      - "have_served_other_party_hand_delivery": ${ have_served_other_party == 'hand delivery' }
-      - "have_served_other_party_first_class_mail": ${ have_served_other_party == 'first class mail' }
-      - "have_served_other_party_email": ${ have_served_other_party == 'e-mail' }
+      - "have_served_other_party_hand_delivery": ${ served_other_party == 'hand delivery' }
+      - "have_served_other_party_first_class_mail": ${ served_other_party == 'first class mail' }
+      - "have_served_other_party_email": ${ served_other_party == 'e-mail' or served_other_party == 'efile' }
 ---
 field: judge.revisit
 question: |
@@ -768,14 +784,14 @@ fields:
       - I started the case: plaintiff
       - I responded to the case: defendant
   - note: |
-      Okay, you are the **Plaintiff** or Petitioner in the trial court. The other
-      side is the **Defendant** or Respondent.
+      Okay, you were the **Plaintiff** or Petitioner in the trial court. The other
+      side was the **Defendant** or Respondent.
     show if:
       variable: user_ask_role
       is: "plaintiff"
   - note: |
-      Okay, you are the **Defendant** or Respondent in the trial court. The other
-      side is the **Plaintiff** or Petitioner.
+      Okay, you were the **Defendant** or Respondent in the trial court. The other
+      side was the **Plaintiff** or Petitioner.
     show if:
       variable: user_ask_role
       is: "defendant"
@@ -783,9 +799,9 @@ help:
   label: |
     How do I know?
   content: |
-    If you are the first person to file a form in the case, you are the
+    If you were the first person to file a form in the case, you are the
     "Plaintiff" or the "Petitioner."
-    If you are responding to a case or court papers someone else filed, you are
+    If you were responding to a case or court papers someone else filed, you are
     the "Defendant" or the "Respondent."
 
 
