@@ -284,7 +284,7 @@ help:
   label: |
     More Info
   content: |
-    Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on Impoundment Procedure Rule 12(c), Supreme Judicial Court Rule 1:15 s. 2(c), and M.R.A.P. 16(d), 16(m), 18(a), and 18(g).
+    Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on [Impoundment Procedure Rule 12(c)](https://www.mass.gov/trial-court-rules/uniform-rules-on-impoundment-procedure-rule-12-appellate-review#-c-notice-to-the-clerk), [Supreme Judicial Court Rule 1:15 s. 2(c)](https://www.mass.gov/supreme-judicial-court-rules/supreme-judicial-court-rule-115-impoundment-procedure-in-the-supreme#section-2-maintaining-confidentiality-of-previously-impounded-material-in-cases-on-appeal), and Massachusetts Rules of Appellate Procedure [16(d)](https://www.mass.gov/rules-of-appellate-procedure/appellate-procedure-rule-16-briefs#-d-references-in-briefs-to-parties), [16(m)](https://www.mass.gov/rules-of-appellate-procedure/appellate-procedure-rule-16-briefs#-m-references-to-impounded-material), [18(a)](https://www.mass.gov/rules-of-appellate-procedure/appellate-procedure-rule-18-appendix-to-the-briefs-contents-cost#-a-duty-of-appellant-to-prepare-and-file-content-of-appendix), and [18(g)](https://www.mass.gov/rules-of-appellate-procedure/appellate-procedure-rule-18-appendix-to-the-briefs-contents-cost#-g-amendment-of-appendix).
 ---
 code: |
   if not case_info_was_impounded:
@@ -351,7 +351,7 @@ fields:
   - 'Basis for Appeal': interlocutory_appeal_reason
     input type: radio
     choices:
-      - M.R.C.P. 54(b)
+      - MA Rules of Civil Procedure (M.R.C.P.) 54(b)
       - Report
       - Present Execution
       - Other
@@ -695,7 +695,7 @@ review:
         - motion_to_amend_served_date
     button: |
       % if motion_to_amend_is_filed:
-      **Motion to Amend or Make Additional Findings (Rule 52(b)) served on**:
+      **Motion to Amend or Make Additional Findings served on**:
       ${ motion_to_amend_served_date.format() }
       % else:
       No motion to amend or make additional findings filed
@@ -707,7 +707,7 @@ review:
         - motion_to_alter_served_date
     button: |
       % if motion_to_alter_is_filed:
-      **Motion to Alter or Amend Judgment (Rule 59) served on**:
+      **Motion to Alter or Amend Judgment served on**:
       ${ motion_to_alter_served_date.format() }
       % else:
       No motion for relief from judgment filed
@@ -719,7 +719,7 @@ review:
         - motion_for_relief_from_judgment_served_date
     button: |
       % if motion_for_relief_from_judgment_is_filed:
-      **Motion for relief from judgment served on**:
+      **Motion for Relief from Judgment served on**:
       ${ motion_for_relief_from_judgment_served_date.format() }
       % else:
       No motion for relief from judgment filed
