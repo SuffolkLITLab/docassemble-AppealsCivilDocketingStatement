@@ -82,7 +82,9 @@ code: |
   set_progress(10.0)
   party_proceedings_exist
   related_appeals_exist
+  party_proceedings_and_related_issues
   served_other_party
+  parties_to_be_served
   # Set the answer file name.
   set_parts(subtitle=str(users))
   docket_numbers.gather()
@@ -158,16 +160,32 @@ fields:
     required: False
     code: name_suffix()
 ---
+comment: |
+  Other options for explaining the choices include:
+    * separate help page, but user would have to switch back and forth
+    * terms on the choices themselves don't seem to work
+    * explained in the subquestion, but the explainations might get long
 id: Judge role
 question: |
   What role did Judge ${ judges[i].name } play in the case?
 fields:
   - no label: judges[i].role
+    input type: radio
     choices:
       - Entered Judgment
       - Heard Motion
       - Reported Case or Question
       - Trial Judge
+  - note:
+      ${ judges[i].name } entered judgment if there was no trial. For example, they dismissed the trial, or gave a summary judgment.
+    show if:
+      variable: judges[i].role
+      is: "Entered Judgment"
+  - note:
+      ${ judges[i].name } heard a motion other than a dispostive motion.
+    show if: 
+      variable: judges[i].role
+      is: "Heard Motion"
 ---
 id: Judges on the lower case
 question: |
@@ -190,7 +208,7 @@ id: Whos decision are you appealing
 question: |
   Are you appealing the decision of a {trial court}, a {board}, or an {agency}?
 subquestion: |
-  You should only be appealing the last decision made in the case: e.g. if a decision from a board or agency was heard by the superior court, and you are appealing that decision, then you are appealing the court's decision, not the boards.
+  You should only be appealing the last decision made in the case. For example, if a decision from a board or agency was heard by the superior court, and you are appealing that decision, then you are appealing the court's decision, not the boards.
 terms:
   trial court: |
     This is the court that made the decision you are appealing, e.g. the District Court, Housing Court, or Probate and Family Court.
@@ -262,13 +280,12 @@ fields:
     input type: area
     maxlength: 910
     show if: case_info_was_impounded
-    
-help label: |
-  More Info
-help: |
-  Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on Impoundment Procedure Rule 12(c), Supreme Judicial Court Rule 1:15 s. 2(c), and M.R.A.P. 16(d), 16(m), 18(a), and 18(g).
+help:
+  label: |
+    More Info
+  content: |
+    Parties filing a brief or record appendix that contains impounded materials must comply with Uniform Rule on Impoundment Procedure Rule 12(c), Supreme Judicial Court Rule 1:15 s. 2(c), and M.R.A.P. 16(d), 16(m), 18(a), and 18(g).
 ---
-depends on: case_info_was_impounded
 code: |
   if not case_info_was_impounded:
     case_info_impoundment_details = 'N/A'
@@ -317,9 +334,14 @@ fields:
 ---
 id: is final_judgment
 question: |
-  Is the appeal from a final judgment (as opposed to a temporary, or interlocutory, judgment)?
-help: |
-  In legal terms, did the judgment dispose of all parties and claims?
+  Is the appeal from a final judgment?
+subquestion: |
+  As opposed to a temporary, or interlocutory, judgment. 
+help:
+  content: |
+    In legal terms, did the judgment dispose of all parties and claims?
+  label: |
+    Specifics
 yesno: is_final_judgment
 ---
 id: Perfection of Appeal
@@ -327,12 +349,13 @@ question: |
   Why should the interlocutory order be appealed?
 fields:
   - 'Basis for Appeal': interlocutory_appeal_reason
+    input type: radio
     choices:
       - M.R.C.P. 54(b)
       - Report
       - Present Execution
       - Other
-  - 'Specify': interlocutory_appeal_reason
+  - 'Specify': interlocutory_appeal_reason_other
     maxlength: 32
     js show if: |
       val("interlocutory_appeal_reason") === "Other"
@@ -343,10 +366,11 @@ code: |
 ---
 id: docketing_date of order
 question: |
-  When was the judgment or order being appealed docketed?
+  When was the ${ "judgment" if is_final_judgment else "order" } being appealed docketed?
 fields:
   - no label: order_docketing_date
     datatype: date
+    max: ${ today() }
 ---
 id: notice of appeal date
 question: |
@@ -361,58 +385,40 @@ comment: |
   just yesnos for each, or a "Were any filed?" with a "what was filed" dropdown + other, and generic for each. Going with the first for now.
 id: any motions
 question: |
-  Were there any post-judgment motions that affected when the notice of the appeal was filed?
+  Were there any post-judgment motions that needed to be decided before the notice of appeal was filed?
+subquestion: |
+  This lets the appeals court know the reason why the notice of appeal might have been filed later than expected. 
 yesno: any_motions_filed
 ---
-id: motion for judgment
+id: which timely motions
 question: |
-  'Motion for Judgment ([Rule 50(b)](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-50-motion-for-a-directed-verdict-and-for-judgment#-b-motion-for-judgment-notwithstanding-the-verdict))'
+  Which of the below motions occured?
 fields:
-  - 'Was a Motion for Judgment (notwithstanding the verdict) filed?': motion_for_judgment_is_filed
-    datatype: yesnoradio
-  - 'When was it served (not filed)?': motion_for_judgment_served_date
+  - 'Motion for Judgment ([Rule 50(b)](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-50-motion-for-a-directed-verdict-and-for-judgment#-b-motion-for-judgment-notwithstanding-the-verdict))': motion_for_judgment_is_filed
+    datatype: yesnowide
+  - 'When was the motion for judgment served (not filed)?': motion_for_judgment_served_date
     datatype: date
     max: ${ today() }
     show if: motion_for_judgment_is_filed
----
-id: motion to amend
-question: |
-  'Motion to Amend or Make Additional Findings ([Rule 52(b)](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-52-findings-by-the-court#-b-courts-other-than-district-court-amendment))'
-fields: 
-  - 'Was a Motion to Amend or Make Additional Findings filed?': motion_to_amend_is_filed
-    datatype: yesnoradio
+  - 'Motion to Amend or Make Additional Findings ([Rule 52(b)](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-52-findings-by-the-court#-b-courts-other-than-district-court-amendment))': motion_to_amend_is_filed
+    datatype: yesnowide
   - 'When was it served (not filed)': motion_to_amend_served_date
     datatype: date
     max: ${ today() }
     show if: motion_to_amend_is_filed
----
-id: motion to alter
-question: |
-  'Motion to Alter or Amend Judgment ([Rule 59](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-59-new-trials-amendment-of-judgments))'
-fields:
-  - 'Was a Motion to Alter or Amend Judgment filed?': motion_to_alter_is_filed
-    datatype: yesnoradio
+  - 'Motion to Alter or Amend Judgment ([Rule 59](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-59-new-trials-amendment-of-judgments))': motion_to_alter_is_filed
+    datatype: yesnowide
   - 'When was it served (not filed)?': motion_to_alter_served_date
     datatype: date
     max: ${ today() }
     show if: motion_to_alter_is_filed
----
-id: motion for relief
-question: |
-  'Motion for Relief from Judgment ([Rule 60](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-60-relief-from-judgment-or-order))'
-fields:
-  - 'Was a Motion for Relief from Judgment filed?': motion_for_relief_from_judgment_is_filed
-    datatype: yesnoradio
+  - 'Motion for Relief from Judgment ([Rule 60](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-60-relief-from-judgment-or-order))': motion_for_relief_from_judgment_is_filed
+    datatype: yesnowide
   - 'When was it served (not filed)?': motion_for_relief_from_judgment_served_date
     datatype: date
     show if: motion_for_relief_from_judgment_is_filed
----
-id: other_motions
-question: |
-  Other types of motions?
-fields:
-  - 'Was there another post-judgment motion filed?': other_type_of_motion_is_filed
-    datatype: yesnoradio
+  - 'Any other post-judgment motion filed': other_type_of_motion_is_filed
+    datatype: yesnowide
   - What was the other type of motion filed?: other_type_of_motion
     maxlength: 17
     show if: other_type_of_motion_is_filed
@@ -448,7 +454,7 @@ yesno: party_proceedings_exist
 ---
 id: related issues
 question: |
-  Do you know of any pending or anticipated appeals raising related issues?
+  Do you know of any other pending or anticipated appeals raising related issues?
 yesno: related_appeals_exist
 ---
 id: related appeals details
@@ -465,23 +471,23 @@ code: |
 ---
 id: method of service
 question: |
-  What **method of delivery** have you used or will you use to provide the required copies of the petition, memorandum and supporting materials to the plaintiffs' attorney(s)?
+  What **method of delivery** will you use to provide the required copies of the petition, memorandum and supporting materials to the other party's attorney(s)?
 subquestion: |
-  **You are required to provide a copy of this petition, memorandum and supporting materials to the plaintiffs' attorney(s).** 
+  **You are required to provide a copy of this petition, memorandum and supporting materials to the other party's attorney(s).** 
   
-  If the plaintiff does not have an attorney, you are required to serve a copy on the self-represented plaintiff.  
+  The materials should be delivered without too much delay, for example, within a day or two of this submission.
   
-  You should not provide a copy of your affidavit of indigency, if any, to anyone except the Appeals Court.  
+  If the other party does not have an attorney, you are required to serve a copy on the self-represented party.  
 field: served_other_party
 dropdown:
-  - efile and serve (efilema.com)
-  - email
+  - 'efile and serve (efilema.com)': 'efile'
+  - e-mail
   - mail
   - hand delivery
 ---
 id: parties to be served
 question: |
-  List the name and address or email address of each attorney or self-represented party that you have served or will serve with copies of your petition, memorandum and supporting materials.
+  List the name and address or e-mail address of each attorney or self-represented party that you have served or will serve with copies of your petition, memorandum and supporting materials.
 subquestion: |
   If you are serving more than one attorney or party, you may list more than one in the space provided.
 fields:
@@ -551,20 +557,20 @@ attachment:
       - "notice_of_appeal_date": ${ notice_of_appeal_date }
       - "motion_for_judgment_is_filed_yes": ${ motion_for_judgment_is_filed }
       - "motion_for_judgment_is_filed_no": ${ not motion_for_judgment_is_filed }
-      - "motion_for_judgment_served_date": ${ motion_for_judgment_served_date }
+      - "motion_for_judgment_served_date": ${ motion_for_judgment_served_date if motion_for_judgment_is_filed else 'N/A' }
       - "motion_to_amend_is_filed_yes": ${ motion_to_amend_is_filed }
       - "motion_to_amend_is_filed_no": ${ not motion_to_amend_is_filed }
-      - "motion_to_amend_served_date": ${ motion_to_amend_served_date }
+      - "motion_to_amend_served_date": ${ motion_to_amend_served_date if motion_to_amend_is_filed else 'N/A' }
       - "motion_to_alter_is_filed_yes": ${ motion_to_alter_is_filed }
       - "motion_to_alter_is_filed_no": ${ not motion_to_alter_is_filed }
-      - "motion_to_alter_served_date": ${ motion_to_alter_served_date }
+      - "motion_to_alter_served_date": ${ motion_to_alter_served_date if motion_to_alter_is_filed else 'N/A' }
       - "motion_for_relief_from_judgment_is_filed_yes": ${ motion_for_relief_from_judgment_is_filed }
       - "motion_for_relief_from_judgment_is_filed_no": ${ not motion_for_relief_from_judgment_is_filed }
-      - "motion_for_relief_from_judgment_served_date": ${ motion_for_relief_from_judgment_served_date }
+      - "motion_for_relief_from_judgment_served_date": ${ motion_for_relief_from_judgment_served_date if motion_for_relief_from_judgment_is_filed else 'N/A' }
       - "other_type_of_motion_is_filed_yes": ${ other_type_of_motion_is_filed }
       - "other_type_of_motion_is_filed_no": ${ not other_type_of_motion_is_filed }
-      - "other_type_of_motion": ${ other_type_of_motion }
-      - "other_type_of_motion_served_date": ${ other_type_of_motion_served_date }
+      - "other_type_of_motion": ${ other_type_of_motion if other_type_of_motion_is_filed else 'N/A' }
+      - "other_type_of_motion_served_date": ${ other_type_of_motion_served_date if other_type_of_motion_is_filed else 'N/A'}
       - "statement_of_anticipated_issues": ${ statement_of_anticipated_issues }
       - "party_proceedings_exist_yes": ${ party_proceedings_exist }
       - "party_proceedings_exist_no": ${ not party_proceedings_exist }
@@ -575,6 +581,7 @@ attachment:
       - "have_served_other_party_hand_delivery": ${ served_other_party == 'hand delivery' }
       - "have_served_other_party_first_class_mail": ${ served_other_party == 'first class mail' }
       - "have_served_other_party_email": ${ served_other_party == 'e-mail' or served_other_party == 'efile' }
+      - "parties_to_be_served": ${ parties_to_be_served }
 ---
 field: judge.revisit
 question: |
@@ -587,34 +594,33 @@ subquestion: |
 id: civil_docketing_statement review screen
 event: review_civil_docketing_statement
 question: |
-  Placeholder Review Screen
+  Answer Review Screen
 subquestion: |
   Edit your answers below
 review:
   - Edit: plaintiffs
     button: |
-      plaintiffs:
+      **plaintiffs**:
       ${ plaintiffs }
   - Edit: defendants
     button: |
-      defendants:
+      **defendants**:
       ${ defendants }
   - Edit: users
     button: |
-      users:
+      **users**:
       ${ users }
   - Edit: other_parties
     button: |
-      other_parties:
+      **other_parties**:
       ${ other_parties }
-  - Edit: attorneys
+  - Edit: attorneys.revisit
     button: |
       **Attorneys**:
       
       % for att in attorneys:
-      - ${ att }, *BBO*: ${ att.bbo }
+      * ${ att }, *BBO*: ${ att.bbo }
       %endfor
-      -------------------------------------
   - Edit: judges.revisit
     button: |
       **Judges**:
@@ -628,11 +634,11 @@ review:
       - recompute:
         - decision_maker_name
     button: |
-      ${ decision_makers[appealed_decision_maker] } name:
+      **${ decision_makers[appealed_decision_maker] } name**:
       ${ decision_maker_name }
   - Edit: trial_court_docket_number
     button: |
-      Original Case Docket Number:
+      **Original Case Docket Number**:
       ${ trial_court_docket_number }
   - label: Edit
     fields:
@@ -641,14 +647,14 @@ review:
         - case_info_impoundment_details
     button: |
       % if case_info_was_impounded:
-      Impounded documents and authority for impoundment:
+      **Impounded documents and authority for impoundment**:
       > ${ single_paragraph(case_info_impoundment_details) }
       % else:
       No documents were impounded in the lower court.
       % endif
   - Edit: nature_of_case
     button: |
-      Nature of case:
+      **Nature of case**:
       ${ nature_of_case }
   - label: Edit
     fields:
@@ -657,18 +663,18 @@ review:
         - interlocutory_appeal_reason
     button: |
       % if not is_final_judgment:
-      Interlocutory Order is appealable because:
+      **Interlocutory Order is appealable because**:
       > ${ interlocutory_appeal_reason }
       % else:
       Appeal is from final Judgment.
       % endif
   - Edit: order_docketing_date
     button: |
-      Docketing date of Order appealed:
+      **Docketing date of Order appealed**:
       ${ order_docketing_date.format() }
   - Edit: notice_of_appeal_date
     button: |
-      Date notice of appeal was Filed:
+      **Date notice of appeal was filed**:
       ${ notice_of_appeal_date.format() }
   - label: Edit
     fields:
@@ -677,31 +683,35 @@ review:
         - motion_for_judgment_served_date
     button: |
       % if motion_for_judgment_is_filed:
-      Motion for Judgment served on:
+      **Motion for Judgment served on**:
       ${ motion_for_judgment_served_date.format() }
       % else:
       No motion for Judgment filed
       % endif
-  - Edit: motion_for_judgment_served_date
+  - label: Edit
+    fields:
+      - motion_to_amend_is_filed
+      - recompute: 
+        - motion_to_amend_served_date
     button: |
-      Date of motion for judgment served:
-      ${ motion_for_judgment_served_date.format() }
-  - Edit: motion_to_amend_is_filed
-    button: |
-      Was a Motion to Amend or Make Additional Findings (Rule 52(b)) filed?:
-      ${ word(yesno(motion_to_amend_is_filed)) }
-  - Edit: motion_to_amend_served_date
-    button: |
-      Date of motion to amend served:
+      % if motion_to_amend_is_filed:
+      **Motion to Amend or Make Additional Findings (Rule 52(b)) served on**:
       ${ motion_to_amend_served_date.format() }
-  - Edit: motion_to_alter_is_filed
+      % else:
+      No motion to amend or make additional findings filed
+      % endif
+  - label: Edit
+    fields:
+      - motion_to_alter_is_filed
+      - recompute: 
+        - motion_to_alter_served_date
     button: |
-      Was a Motion to Alter or Amend Judgment (Rule 59) filed?:
-      ${ word(yesno(motion_to_alter_is_filed)) }
-  - Edit: motion_to_alter_served_date
-    button: |
-      Date of motion to alter served:
+      % if motion_to_alter_is_filed:
+      **Motion to Alter or Amend Judgment (Rule 59) served on**:
       ${ motion_to_alter_served_date.format() }
+      % else:
+      No motion for relief from judgment filed
+      % endif
   - label: Edit
     fields:
       - motion_for_relief_from_judgment_is_filed
@@ -709,7 +719,7 @@ review:
         - motion_for_relief_from_judgment_served_date
     button: |
       % if motion_for_relief_from_judgment_is_filed:
-      Motion for relief from judgment served on:
+      **Motion for relief from judgment served on**:
       ${ motion_for_relief_from_judgment_served_date.format() }
       % else:
       No motion for relief from judgment filed
@@ -722,26 +732,26 @@ review:
         - other_type_of_motion_served_date
     button: |
       % if other_type_of_motion_is_filed:
-      ${ other_type_of_motion } served on:
+      **${ other_type_of_motion } served on**:
       ${ other_type_of_motion_served_date.format() }
       % else:
       No other motions passed
       % endif
   - Edit: statement_of_anticipated_issues
     button: |
-      please provide a short statement of the anticipated issues on appeal.
+      **anticipated issues on appeal**:
       > ${ single_paragraph(statement_of_anticipated_issues) }
   - Edit: party_proceedings_exist
     button: |
-      Are there any pending, past, or anticipated future appeals or original appellate proceedings that involve these parties or this case which have been entered in the Appeals Court or Supreme Judicial Court?:
+      **appeals that involve these parties**:
       ${ word(yesno(party_proceedings_exist)) }
   - Edit: related_appeals_exist
     button: |
-      Do you know of any pending or anticipated appeals raising related issues?:
+      **appeals raising related issues**:
       ${ word(yesno(related_appeals_exist)) }
   - Edit: party_proceedings_and_related_issues
     button: |
-      provide the case name and docket number and describe below the related matter or issue:
+      **related appeals or issues**:
       ${ party_proceedings_and_related_issues }
   - Edit: have_served_other_party
     button: |
@@ -749,27 +759,24 @@ review:
       ${ have_served_other_party }
   - Edit: docket_numbers
     button: |
-      docket_numbers:
+      **docket_numbers**:
       ${ docket_numbers }
   - Edit: users[0].signature
     button: |
-      users[0].signature:
+      **${ users[0] } signature**:
       ${ users[0].signature }
   - Edit: users[0].address.address
     button: |
-      users[0].address.address:
+      **${ users[0] } address**:
       ${ users[0].address.address }
   - Edit: signature_date
     button: |
-      signature_date:
+      **signature_date**:
       ${ signature_date }
   - Edit: users[0].phone_number
     button: |
-      users[0].phone_number:
+      **${ users[0] } phone number**:
       ${ users[0].phone_number }
-
-
-
 
 ---
 comment: |
@@ -783,13 +790,13 @@ fields:
     choices:
       - I started the case: plaintiff
       - I responded to the case: defendant
-  - note: |
+  - note:
       Okay, you were the **Plaintiff** or Petitioner in the trial court. The other
       side was the **Defendant** or Respondent.
     show if:
       variable: user_ask_role
       is: "plaintiff"
-  - note: |
+  - note:
       Okay, you were the **Defendant** or Respondent in the trial court. The other
       side was the **Plaintiff** or Petitioner.
     show if:
@@ -803,7 +810,3 @@ help:
     "Plaintiff" or the "Petitioner."
     If you were responding to a case or court papers someone else filed, you are
     the "Defendant" or the "Respondent."
-
-
-
-
