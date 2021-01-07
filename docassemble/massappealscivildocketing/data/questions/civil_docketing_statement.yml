@@ -538,7 +538,7 @@ attachment:
       - "user_address_block__1": ${ users[0].address.block() }
       - "attorney_bbo": ${ ','.join([att.bbo for att in attorneys.complete_elements()]) if attorneys.number_gathered() > 0 else 'N/A' }
       - "user_is_self_represented": ${ attorneys.number_gathered() == 0 }
-      - "trial_court_name": ${ decision_maker_name }
+      - "decision_maker_name": ${ decision_maker_name }
       - "trial_court_docket_number": ${ trial_court_docket_number }
       - "judge0": ${ judges[0].name if judges.number() > 0 else 'N/A' }
       - "judge0_role": ${ judges[0].role if judges.number() > 0 else 'N/A' }
@@ -753,10 +753,10 @@ review:
     button: |
       **related appeals or issues**:
       ${ party_proceedings_and_related_issues }
-  - Edit: have_served_other_party
+  - Edit: served_other_party
     button: |
       I made service directly to the self-represented party
-      ${ have_served_other_party }
+      ${ served_other_party }
   - Edit: docket_numbers
     button: |
       **docket_numbers**:
