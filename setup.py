@@ -42,7 +42,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
                 out.setdefault(package, []).append(prefix+name)
     return out
 
-setup(name='docassemble.massappealscivildocketing',
+setup(name='docassemble.AppealsCivilDocketingStatement',
       version='0.0.1',
       description=('Massachusetts Appeals Court Civil Docketing Statement / Coversheet'),
       long_description='Mass Appeals Court Civil Docketing Statement / Coversheet\r\n\r\nIn progress, subject to change.\r\n\r\nbwilley@suffolk.edu',
@@ -55,6 +55,6 @@ setup(name='docassemble.massappealscivildocketing',
       namespace_packages=['docassemble'],
       install_requires=['docassemble.MACourts>=0.0.47', 'docassemble.MAVirtualCourt>=1.0.20', 'docassemble.MassAppealsCourt'],
       zip_safe=False,
-      package_data=find_package_data(where='docassemble/massappealscivildocketing/', package='docassemble.massappealscivildocketing'),
+      package_data=find_package_data(where='docassemble/AppealsCivilDocketingStatement/', package='docassemble.AppealsCivilDocketingStatement'),
      )
 
