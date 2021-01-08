@@ -169,7 +169,7 @@ comment: |
   Other options for explaining the choices include:
     * separate help page, but user would have to switch back and forth
     * terms on the choices themselves don't seem to work
-    * explained in the subquestion, but the explainations might get long
+    * explained in the subquestion, but the explanations might get long
 id: Judge role
 question: |
   What role did Judge ${ judges[i].name } play in the case?
@@ -187,7 +187,7 @@ fields:
       variable: judges[i].role
       is: "Entered Judgment"
   - note:
-      ${ judges[i].name } heard a motion other than a dispostive motion.
+      ${ judges[i].name } heard a motion other than a dispositive motion.
     show if: 
       variable: judges[i].role
       is: "Heard Motion"
@@ -382,7 +382,7 @@ question: |
 fields:
   - no label: notice_of_appeal_date
     datatype: date
-    # Not sure if this needs to go on the notice of appeal or not? Leaving out validitation
+    # Not sure if this needs to go on the notice of appeal or not? Leaving out validation
     # max: ${ today() }
 ---
 comment: |
@@ -397,7 +397,7 @@ yesno: any_motions_filed
 ---
 id: which timely motions
 question: |
-  Which of the below motions occured?
+  Which of the below motions occurred?
 fields:
   - 'Motion for Judgment ([Rule 50(b)](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-50-motion-for-a-directed-verdict-and-for-judgment#-b-motion-for-judgment-notwithstanding-the-verdict))': motion_for_judgment_is_filed
     datatype: yesnowide
