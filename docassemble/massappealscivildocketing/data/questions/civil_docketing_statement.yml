@@ -110,12 +110,14 @@ question: |
 subquestion: |
   This page will help you to fill out a Civil Docketing Statement to the Appeals Court. If you are appealing a judgment of your case, you should submit this form within 14 days of the Notice of Entry of the Appeal.
   
-  It helps to have court information about your lower court case being appealed with you now, as you complete this form.
+  It helps to have court information about your {trial court} case being appealed with you now, as you complete this form.
 terms:
+  trial court: |
+    the court that made the decision you are appealing
   appellant: |
-    The party of the lower court case who is appealing the lower court's decision
+    The party of the trial court case who is appealing the trial court's decision
   cross-appellant: |
-    The opposing party of the appellant, that has also decided to appeal the lower court's decision for different reasons than the original appeal.
+    The opposing party of the appellant, that has also decided to appeal the trial court's decision for different reasons than the original appeal.
   starting the appeal: |
     "within fourteen (14) days of issuance of the notice of entry of the appeal"
 ---
@@ -141,10 +143,13 @@ yesno: attorneys.there_are_any
 ---
 id: Attorney BBO
 question: |
-  What is ${ attorneys[i].possessive('BBO number') } (Board of Bar Overseers)?
+  What is ${ attorneys[i].possessive('BBO number') }?
 fields:
-  - BBO number: attorneys[i].bbo
+  - BBO: attorneys[i].bbo
     required: True
+auto terms:
+  BBO number: |
+    Board of Bar Overseers
 ---
 id: "Judge's name"
 question: |
@@ -187,7 +192,7 @@ fields:
       variable: judges[i].role
       is: "Heard Motion"
 ---
-id: Judges on the lower case
+id: Judges on the trial case
 question: |
   Were there any judges involved in the issues that you are appealing?
 yesno: judges.there_are_any
@@ -223,9 +228,9 @@ fields:
         decision_makers
 ---
 code: |
-  readable_deciders = {'trial_court': 'Trial court',
-                       'board': 'Board',
-                       'agency': 'Agency'}
+  readable_deciders = {'trial_court': 'trial court',
+                       'board': 'board',
+                       'agency': 'agency'}
   decision_makers = [{it[0]: it[1]} for it in readable_deciders.items()]
 ---
 if: |
@@ -258,7 +263,7 @@ fields:
 ---
 id: Lower Court docket number
 question: |
-  What was the docket number of the original case in the ${ decision_maker_name }?
+  What was the docket number of the original case in ${ decision_maker_name }?
 fields:
   - "Docket number": trial_court_docket_number
     maxlength: 96
@@ -336,10 +341,9 @@ id: is final_judgment
 question: |
   Is the appeal from a final judgment?
 subquestion: |
-  As opposed to a temporary, or interlocutory, judgment. 
 help:
   content: |
-    In legal terms, did the judgment dispose of all parties and claims?
+    This is as opposed to a temporary, or interlocutory, judgment. A final judgment disposes of all parties and claims, while an interlocutory order happens in the middle of the trial court case.
   label: |
     Specifics
 yesno: is_final_judgment
@@ -378,7 +382,8 @@ question: |
 fields:
   - no label: notice_of_appeal_date
     datatype: date
-    max: ${ today() }
+    # Not sure if this needs to go on the notice of appeal or not? Leaving out validitation
+    # max: ${ today() }
 ---
 comment: |
   This could be a single: "Were any motions filed?", with yesnos for each, 
@@ -387,7 +392,7 @@ id: any motions
 question: |
   Were there any post-judgment motions that needed to be decided before the notice of appeal was filed?
 subquestion: |
-  This lets the appeals court know the reason why the notice of appeal might have been filed later than expected. 
+  This lets the appeals court know if the notice of appeal was filed later than expected and why. 
 yesno: any_motions_filed
 ---
 id: which timely motions
@@ -445,11 +450,11 @@ fields:
     input type: area
     maxlength: 728
 ---
-id: Related Appeals
+id: Appeals with same parties
 question: |
-  Related Appeals
+  Appeals with these parties
 subquestion: |
-  Are there any other appeals that involve these parties or this case which have been entered in the Appeals Court or Supreme Judicial Court?
+  Are there any other appeals that involve this case or these parties (${ plaintiffs.comma_and_list()} or ${ defendants.comma_and_list()}) which have been entered in the Appeals Court or Supreme Judicial Court?
 yesno: party_proceedings_exist
 ---
 id: related issues
@@ -650,7 +655,7 @@ review:
       **Impounded documents and authority for impoundment**:
       > ${ single_paragraph(case_info_impoundment_details) }
       % else:
-      No documents were impounded in the lower court.
+      No documents were impounded in the trial court.
       % endif
   - Edit: nature_of_case
     button: |
@@ -810,3 +815,11 @@ help:
     "Plaintiff" or the "Petitioner."
     If you were responding to a case or court papers someone else filed, you are
     the "Defendant" or the "Respondent."
+---
+comment: |
+  TODO(brycew): should also go in appeals court package
+question: |
+  Do you have an Appeals Court docket number for this case?
+subquestion: |
+  This should _not_ be the docket number for the trial court case.
+yesno: docket_numbers.there_are_any
