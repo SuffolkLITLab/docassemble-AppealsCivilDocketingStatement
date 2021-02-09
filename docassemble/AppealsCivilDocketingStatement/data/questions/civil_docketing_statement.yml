@@ -47,6 +47,7 @@ code: |
 mandatory: True
 id: main_order_civil_docketing_statement
 code: |
+  appeals_basic_questions_intro_screen
   civil_docketing_statement_intro
   civil_docketing_statement  # Triggers the interview order block
   civil_docketing_statement_preview_question
