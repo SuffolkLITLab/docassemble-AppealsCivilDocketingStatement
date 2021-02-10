@@ -67,6 +67,7 @@ code: |
   attorneys.gather()
   plaintiffs.gather()
   defendants.gather()
+  other_parties.there_are_any = True
   other_parties.gather()
   
   decision_maker_name
