@@ -482,9 +482,9 @@ code: |
 ---
 id: method of service
 question: |
-  What **method of delivery** will you use to provide the required copies of the petition, memorandum and supporting materials to the other party's attorney(s)?
+  What **method of delivery** will you use to provide the required copies of the docketing statement to the other party's attorney(s)?
 subquestion: |
-  **You are required to provide a copy of this petition, memorandum and supporting materials to the other party's attorney(s).** 
+  **You are required to provide a copy of this docketing statement to the other party's attorney(s).** 
   
   The materials should be delivered without too much delay, for example, within a day or two of this submission.
   
@@ -498,7 +498,7 @@ dropdown:
 ---
 id: parties to be served
 question: |
-  List the name and address or e-mail address of each attorney or self-represented party that you have served or will serve with copies of your petition, memorandum and supporting materials.
+  List the name and address or e-mail address of each attorney or self-represented party that you have served or will serve with copies of your docketing statement.
 subquestion: |
   If you are serving more than one attorney or party, you may list more than one in the space provided.
 fields:
