@@ -1,0 +1,53 @@
+include:
+  - .civil_docketing_statement.yml
+---
+comment: |
+  The metadata section controls the tab title and saved interview title. You can delete this section if you include this YAML file in another YAML file.
+metadata:
+  title: |
+    Civil Docketing Statement
+  short title: |
+    Civil Docketing
+---
+features:
+  navigation: True
+---
+comment: |
+  This section is used by MAVirtualCourts to control how some of the questions work.
+mandatory: True
+code: |
+  interview_metadata # make sure we initialize the object
+  if not defined("interview_metadata['civil_docketing_statement']"):
+    interview_metadata.initializeObject('civil_docketing_statement')
+  interview_metadata['civil_docketing_statement'].update({
+    'title': 'Civil Docketing Statement',
+    'short title': 'Civil Docketing',
+    'description': 'Use this form to fill out an Appeals Court Civil Docketing Statement, required for many other Appeals Court forms',
+    'original_form': 'https://www.mass.gov/doc/civil-docketing-statement-updated-10-28-19/download',
+    'allowed courts': [
+    ],
+    'categories': [
+    ],
+    'logic block variable': 'civil_docketing_statement',
+    'attachment block variable': 'civil_docketing_statement_attachment',
+    'typical role': 'unknown',
+  })
+---
+mandatory: True
+id: main_order_civil_docketing_statement
+code: |
+  appeals_basic_questions_intro_screen
+  civil_docketing_statement_intro
+  civil_docketing_statement  # Triggers the interview order block
+  civil_docketing_statement_preview_question
+  basic_questions_signature_flow
+  users[0].signature
+---
+id: Review your form before you sign it
+continue button field: civil_docketing_statement_preview_question
+question: |
+  Review your form before you sign it
+subquestion: |
+  Here is a preview of the form you'll sign on the next page. 
+  
+   ${ pdf_concatenate(civil_docketing_statement_attachment['preview'], filename='civil_docketing_statement.pdf')}

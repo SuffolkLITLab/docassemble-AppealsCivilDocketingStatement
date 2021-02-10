@@ -2,57 +2,15 @@ include:
   - docassemble.MAVirtualCourt:basic-questions.yml
   - docassemble.MassAppealsCourt:appeals-basic-questions.yml
 ---
-comment: |
-  The metadata section controls the tab title and saved interview title. You can delete this section if you include this YAML file in another YAML file.
-metadata:
-  title: |
-    Civil Docketing Statement
-  short title: |
-    Civil Docketing
----
 objects:
   - judges: |
       DAList.using(object_type=Individual)
----
-comment: |
-  This section is used by MAVirtualCourts to control how some of the questions work.
-mandatory: True
-code: |
-  interview_metadata # make sure we initialize the object
-  if not defined("interview_metadata['civil_docketing_statement']"):
-    interview_metadata.initializeObject('civil_docketing_statement')
-  interview_metadata['civil_docketing_statement'].update({
-    'title': 'Civil Docketing Statement',
-    'short title': 'Civil Docketing',
-    'description': 'Use this form to fill out an Appeals Court Civil Docketing Statement, required for many other Appeals Court forms',
-    'original_form': 'https://www.mass.gov/doc/civil-docketing-statement-updated-10-28-19/download',
-    'allowed courts': [
-    ],
-    'categories': [
-    ],
-    'logic block variable': 'civil_docketing_statement',
-    'attachment block variable': 'civil_docketing_statement_attachment',
-    'typical role': 'unknown',
-  })
----
-features:
-  navigation: True
 ---
 sections:
   - review_civil_docketing_statement: Review your answers
 ---
 code: |
   interview_short_title = interview_metadata['civil_docketing_statement']['title']
----
-mandatory: True
-id: main_order_civil_docketing_statement
-code: |
-  appeals_basic_questions_intro_screen
-  civil_docketing_statement_intro
-  civil_docketing_statement  # Triggers the interview order block
-  civil_docketing_statement_preview_question
-  basic_questions_signature_flow
-  users[0].signature
 ---
 id: interview_order_civil_docketing_statement
 code: |
@@ -103,9 +61,6 @@ code: |
   set_progress(40.0)
   # Save (anonymized) interview statistics.
   store_variables_snapshot(data={'zip': users[0].address.zip})
-  civil_docketing_statement_preview_question # Pre-canned preview screen
-  basic_questions_signature_flow
-  users[0].signature
   civil_docketing_statement = True
 ---
 comment: |
@@ -127,15 +82,6 @@ terms:
     The opposing party of the appellant, that has also decided to appeal the trial court's decision for different reasons than the original appeal.
   starting the appeal: |
     "within fourteen (14) days of issuance of the notice of entry of the appeal"
----
-id: Review your form before you sign it
-continue button field: civil_docketing_statement_preview_question
-question: |
-  Review your form before you sign it
-subquestion: |
-  Here is a preview of the form you'll sign on the next page. 
-  
-   ${ pdf_concatenate(civil_docketing_statement_attachment['preview'], filename='civil_docketing_statement.pdf')}
 ---
 id: Are you an attorney
 question: |
