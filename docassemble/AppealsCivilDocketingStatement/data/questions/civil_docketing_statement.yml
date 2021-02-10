@@ -93,7 +93,7 @@ code: |
   parties_to_be_served
   # Set the answer file name.
   set_parts(subtitle=str(users))
-  docket_numbers.gather()
+  appeals_docket_number
   set_progress(20.0)
   
   users[0].address.block()
@@ -530,7 +530,7 @@ attachment:
     skip undefined: True
     pdf template file: civil_docketing_statement.pdf
     fields: 
-      - "docket_number": ${ docket_numbers }
+      - "docket_number": ${ appeals_docket_number }
       - "plaintiff": ${ plaintiffs }
       - "defendant": ${ defendants }
       - "user": ${ users }
@@ -768,10 +768,10 @@ review:
     button: |
       I made service directly to the self-represented party
       ${ served_other_party }
-  - Edit: docket_numbers
+  - Edit: appeals_docket_number
     button: |
-      **docket_numbers**:
-      ${ docket_numbers }
+      **appeals_docket_number**:
+      ${ appeals_docket_number }
   - Edit: users[0].signature
     button: |
       **${ users[0] } signature**:
