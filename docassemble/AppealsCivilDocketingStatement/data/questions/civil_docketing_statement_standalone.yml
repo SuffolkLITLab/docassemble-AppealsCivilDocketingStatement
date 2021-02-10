@@ -1,16 +1,3 @@
-include:
-  - .civil_docketing_statement.yml
----
-comment: |
-  The metadata section controls the tab title and saved interview title. You can delete this section if you include this YAML file in another YAML file.
-metadata:
-  title: |
-    Civil Docketing Statement
-  short title: |
-    Civil Docketing
----
-features:
-  navigation: True
 ---
 comment: |
   This section is used by MAVirtualCourts to control how some of the questions work.
@@ -33,6 +20,20 @@ code: |
     'typical role': 'unknown',
   })
 ---
+include:
+  - civil_docketing_statement.yml
+---
+comment: |
+  The metadata section controls the tab title and saved interview title. You can delete this section if you include this YAML file in another YAML file.
+metadata:
+  title: |
+    Civil Docketing Statement
+  short title: |
+    Civil Docketing
+---
+features:
+  navigation: True
+---
 mandatory: True
 id: main_order_civil_docketing_statement
 code: |
@@ -51,3 +52,17 @@ subquestion: |
   Here is a preview of the form you'll sign on the next page. 
   
    ${ pdf_concatenate(civil_docketing_statement_attachment['preview'], filename='civil_docketing_statement.pdf')}
+---
+progress: 100
+mandatory: True
+id: Your form is ready to download and file
+question: |
+  Your form is ready to download and file
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  Below is a preview of your form.
+  
+  ${pdf_concatenate(civil_docketing_statement_attachment['final'], filename='civil_docketing_statement.pdf') }
+need: civil_docketing_statement
+attachment code: civil_docketing_statement_attachment['final']

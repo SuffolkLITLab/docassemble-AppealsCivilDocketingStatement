@@ -1,5 +1,6 @@
 include:
-  - docassemble.MAVirtualCourt:basic-questions.yml
+  - docassemble.AssemblyLine:al_package.yml
+  - docassemble.MassAccess:massaccess.yml
   - docassemble.MassAppealsCourt:appeals-basic-questions.yml
 ---
 objects:
@@ -23,9 +24,9 @@ code: |
   users.gather()
   attorneys.complete_attribute = 'bbo'
   attorneys.gather()
+  other_parties.there_are_any = True
   plaintiffs.gather()
   defendants.gather()
-  other_parties.there_are_any = True
   other_parties.gather()
   
   decision_maker_name
@@ -452,20 +453,6 @@ fields:
   - no label: parties_to_be_served
     input type: area 
     rows: 6
----
-progress: 100
-mandatory: True
-id: Your form is ready to download and file
-question: |
-  Your form is ready to download and file
-subquestion: |
-  Thank you ${users}. Your form is ready to download and deliver.
-  
-  Below is a preview of your form.
-  
-  ${pdf_concatenate(civil_docketing_statement_attachment['final'], filename='civil_docketing_statement.pdf') }
-need: civil_docketing_statement
-attachment code: civil_docketing_statement_attachment['final']
 ---
 objects:
   - civil_docketing_statement_attachment: DADict
