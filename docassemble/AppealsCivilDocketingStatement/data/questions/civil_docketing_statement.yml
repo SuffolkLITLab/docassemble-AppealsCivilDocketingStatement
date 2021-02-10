@@ -22,7 +22,7 @@ code: |
   # You can set user_role directly instead to either 'plaintiff' or 'defendant'
   # user_ask_role
   users.gather()
-  attorneys.complete_attribute = 'bbo'
+  attorneys.complete_attribute = 'id_number'
   attorneys.gather()
   other_parties.there_are_any = True
   plaintiffs.gather()
@@ -94,16 +94,6 @@ generic object: PeopleList
 question: |
   Do you have an attorney?
 yesno: attorneys.there_are_any
----
-id: Attorney BBO
-question: |
-  What is ${ attorneys[i].possessive('BBO number') }?
-fields:
-  - BBO: attorneys[i].bbo
-    required: True
-auto terms:
-  BBO number: |
-    Board of Bar Overseers
 ---
 id: "Judge's name"
 question: |
@@ -481,7 +471,7 @@ attachment:
       # If it is a signature, test which file version we're expecting. leave it empty unless it's the final attachment version
       - "user_signature__1": ${ users[0].signature if i == 'final' else '' }
       - "user_address_block__1": ${ users[0].address.block() }
-      - "attorney_bbo": ${ ','.join([att.bbo for att in attorneys.complete_elements()]) if attorneys.number_gathered() > 0 else 'N/A' }
+      - "attorney_bbo": ${ ','.join([att.id_number for att in attorneys.complete_elements()]) if attorneys.number_gathered() > 0 else 'N/A' }
       - "user_is_self_represented": ${ attorneys.number_gathered() == 0 }
       - "decision_maker_name": ${ decision_maker_name }
       - "trial_court_docket_number": ${ trial_court_docket_number }
@@ -522,7 +512,7 @@ attachment:
       - "related_appeals_exist_yes": ${ related_appeals_exist }
       - "related_appeals_exist_no": ${ not related_appeals_exist }
       - "party_proceedings_and_related_issues": ${ party_proceedings_and_related_issues }
-      - "attorney_bbo__1": ${ ','.join([att.bbo for att in attorneys.complete_elements()]) if attorneys.number_gathered() > 0 else 'N/A' }
+      - "attorney_bbo__1": ${ ','.join([att.id_number for att in attorneys.complete_elements()]) if attorneys.number_gathered() > 0 else 'N/A' }
       - "have_served_other_party_hand_delivery": ${ served_other_party == 'hand delivery' }
       - "have_served_other_party_first_class_mail": ${ served_other_party == 'first class mail' }
       - "have_served_other_party_email": ${ served_other_party == 'e-mail' or served_other_party == 'efile' }
@@ -564,7 +554,7 @@ review:
       **Attorneys**:
       
       % for att in attorneys:
-      * ${ att }, *BBO*: ${ att.bbo }
+      * ${ att }, *BBO*: ${ att.id_number}
       %endfor
   - Edit: judges.revisit
     button: |
