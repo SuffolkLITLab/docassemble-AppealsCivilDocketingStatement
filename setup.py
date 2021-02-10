@@ -43,7 +43,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
     return out
 
 setup(name='docassemble.AppealsCivilDocketingStatement',
-      version='0.0.1',
+      version='0.0.2',
       description=('Massachusetts Appeals Court Civil Docketing Statement / Coversheet'),
       long_description='Mass Appeals Court Civil Docketing Statement / Coversheet\r\n\r\nIn progress, subject to change.\r\n\r\nbwilley@suffolk.edu',
       long_description_content_type='text/markdown',
