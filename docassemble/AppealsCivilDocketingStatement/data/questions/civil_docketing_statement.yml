@@ -3,6 +3,27 @@ include:
   - docassemble.MassAccess:massaccess.yml
   - docassemble.MassAppealsCourt:appeals-basic-questions.yml
 ---
+comment: |
+  This section is used by MAVirtualCourts to control how some of the questions work.
+mandatory: True
+code: |
+  interview_metadata # make sure we initialize the object
+  if not defined("interview_metadata['civil_docketing_statement']"):
+    interview_metadata.initializeObject('civil_docketing_statement')
+  interview_metadata['civil_docketing_statement'].update({
+    'title': 'Civil Docketing Statement',
+    'short title': 'Civil Docketing',
+    'description': 'Use this form to fill out an Appeals Court Civil Docketing Statement, required for many other Appeals Court forms',
+    'original_form': 'https://www.mass.gov/doc/civil-docketing-statement-updated-10-28-19/download',
+    'allowed courts': [
+    ],
+    'categories': [
+    ],
+    'logic block variable': 'civil_docketing_statement',
+    'attachment block variable': 'civil_docketing_statement_attachment',
+    'typical role': 'unknown',
+  })
+---
 objects:
   - judges: |
       DAList.using(object_type=Individual)
