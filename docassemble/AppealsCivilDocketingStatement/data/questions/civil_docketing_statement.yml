@@ -466,7 +466,7 @@ fields:
     rows: 6
 ---
 objects:
-  - civil_docketing_statement_attachment: DADict
+  - civil_docketing_statement_attachment: ALDocument.using(title='Civil Docketing Statement', filename='Civil_Docketing_Statement', has_addendum=False)
 ---
 attachment:
     variable name: civil_docketing_statement_attachment[i]

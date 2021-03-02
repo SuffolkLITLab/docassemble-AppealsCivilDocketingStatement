@@ -13,6 +13,9 @@ metadata:
 features:
   navigation: True
 ---
+code: |
+  civil_docketing_statement_attachment.enabled = True
+---
 mandatory: True
 id: main_order_civil_docketing_statement
 code: |
@@ -29,8 +32,12 @@ question: |
   Review your form before you sign it
 subquestion: |
   Here is a preview of the form you'll sign on the next page. 
-  
-   ${ pdf_concatenate(civil_docketing_statement_attachment['preview'], filename='civil_docketing_statement.pdf')}
+   
+   ${ al_user_bundle.as_pdf(key='preview') }
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[civil_docketing_statement_attachment], filename="civil-docketing-statement.pdf", title="All forms to download for your records")
+  - al_court_bundle: ALDocumentBundle.using(elements=[civil_docketing_statement_attachment], filename="civil-docketing-statement.pdf", title="All forms to download for your records")
 ---
 progress: 100
 mandatory: True
@@ -42,6 +49,7 @@ subquestion: |
   
   Below is a preview of your form.
   
-  ${pdf_concatenate(civil_docketing_statement_attachment['final'], filename='civil_docketing_statement.pdf') }
+  ${ al_user_bundle.download_list_html() }
+  
+  ${ al_user_bundle.send_button_html() }
 need: civil_docketing_statement
-attachment code: civil_docketing_statement_attachment['final']
