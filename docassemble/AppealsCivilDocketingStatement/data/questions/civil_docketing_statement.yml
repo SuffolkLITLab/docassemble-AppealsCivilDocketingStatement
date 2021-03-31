@@ -105,6 +105,49 @@ terms:
   starting the appeal: |
     "within fourteen (14) days of issuance of the notice of entry of the appeal"
 ---
+sets:
+  - users[i].name.first
+  - users[i].name.last
+id: other users names
+question: |
+  % if al_form_type in ['starts_case','existing_case','appeal']:
+  What is the name of the ${ ordinal(i) } person who is part of the case with you?
+  % else:
+  What is the name of the ${ ordinal(i) } person who is adding their name to
+  this form with you?
+  % endif
+fields:
+  - code: |
+      users[i].name_fields(person_or_business='unsure')
+---
+template: users[0].person_type_label
+content: |
+  Is this for yourself, or on behalf of a business or organization?
+---
+template: users[0].individual_choice_label
+content: |
+  For myself
+---
+id: your name Civil Docketing
+sets:
+    - users[0].name.first
+    - users[0].name.last
+question:  |
+  What is your name?
+fields:
+  - code: |
+      users[0].name_fields(person_or_business='unsure')
+---
+id: names of attorney
+sets:
+  - attorneys[i].name.first
+  - attorneys[i].name.last
+question: |
+  Name of your ${ ordinal(i) } attorney
+fields:
+  - code: |
+      attorneys[i].name_fields()
+---
 id: Are you an attorney
 question: |
   Are you the attorney?
