@@ -53,7 +53,7 @@ setup(name='docassemble.AppealsCivilDocketingStatement',
       url='https://docassemble.org',
       packages=find_packages(),
       namespace_packages=['docassemble'],
-      install_requires=['docassemble.MACourts>=0.0.47', 'docassemble.MAVirtualCourt>=1.0.20', 'docassemble.MassAppealsCourt'],
+      install_requires=['docassemble.MACourts>=0.0.58.2', 'docassemble.MAVirtualCourt>=1.0.22', 'docassemble.MassAppealsCourt'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/AppealsCivilDocketingStatement/', package='docassemble.AppealsCivilDocketingStatement'),
      )

@@ -582,13 +582,58 @@ attachment:
       - "have_served_other_party_email": ${ served_other_party == 'e-mail' or served_other_party == 'efile' }
       - "parties_to_be_served": ${ parties_to_be_served }
 ---
-field: judge.revisit
+generic object: ALPeopleList
+table: x.table
+rows: x
+columns:
+  - name: |
+      row_item.name if defined('row_item.name.first') else ""
+edit:
+  - name.first
+confirm: True
+---
+table: judges.table
+rows: judges
+columns:
+  - name: |
+      row_item.name if defined('row_item.name.first') else ""
+  - phone number: |
+      row_item.role if defined('row_item.role') else ""
+edit:
+  - name.first
+  - role
+confirm: True
+---
+table: attorneys.table
+rows: attorneys
+columns:
+  - name: |
+      row_item.name if defined('row_item.name.first') else ""
+  - phone number: |
+      row_item.id_number if defined('row_item.id_number') else ""
+edit:
+  - name.first
+  - id_number
+confirm: True
+---
+generic object: ALPeopleList
+field: x.revisit
 question: |
-  Edit the judges
+  Edit the ${ x.object_possessive('information') }
 subquestion: |
-  ${ judges.table }
+  ${ x.table }
   
-  ${ judges.add_action() }
+  ${ x.add_action() }
+---
+generic object: DAList
+field: x.revisit
+question: |
+  Edit the ${ x.object_possessive('information') }
+subquestion: |
+  ${ x.table }
+  
+  ${ x.add_action() }
+---
 ---
 id: civil_docketing_statement review screen
 event: review_civil_docketing_statement
@@ -597,19 +642,35 @@ question: |
 subquestion: |
   Edit your answers below
 review:
-  - Edit: plaintiffs
+  - Edit: plaintiffs.revisit
     button: |
       **plaintiffs**:
       ${ plaintiffs }
-  - Edit: defendants
+  - Edit: defendants.revisit
     button: |
       **defendants**:
       ${ defendants }
-  - Edit: users
+  - Edit: users.revisit
     button: |
       **users**:
       ${ users }
-  - Edit: other_parties
+  - Edit: users[0].signature
+    button: |
+      **${ users[0] } signature**:
+      ${ users[0].signature }
+  - Edit: users[0].address.address
+    button: |
+      **${ users[0] } address**:
+      ${ users[0].address.address }
+  - Edit: signature_date
+    button: |
+      **signature_date**:
+      ${ signature_date }
+  - Edit: users[0].phone_number
+    button: |
+      **${ users[0] } phone number**:
+      ${ users[0].phone_number }
+  - Edit: other_parties.revisit
     button: |
       **other_parties**:
       ${ other_parties }
@@ -760,19 +821,3 @@ review:
     button: |
       **appeals_docket_number**:
       ${ appeals_docket_number }
-  - Edit: users[0].signature
-    button: |
-      **${ users[0] } signature**:
-      ${ users[0].signature }
-  - Edit: users[0].address.address
-    button: |
-      **${ users[0] } address**:
-      ${ users[0].address.address }
-  - Edit: signature_date
-    button: |
-      **signature_date**:
-      ${ signature_date }
-  - Edit: users[0].phone_number
-    button: |
-      **${ users[0] } phone number**:
-      ${ users[0].phone_number }
