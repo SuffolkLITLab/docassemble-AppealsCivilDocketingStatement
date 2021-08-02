@@ -43,7 +43,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
     return out
 
 setup(name='docassemble.AppealsCivilDocketingStatement',
-      version='0.0.5',
+      version='0.0.6',
       description=('Massachusetts Appeals Court Civil Docketing Statement / Coversheet'),
       long_description='Mass Appeals Court Civil Docketing Statement / Coversheet\r\n\r\nIn progress, subject to change.\r\n\r\nbwilley@suffolk.edu',
       long_description_content_type='text/markdown',
@@ -53,7 +53,7 @@ setup(name='docassemble.AppealsCivilDocketingStatement',
       url='https://docassemble.org',
       packages=find_packages(),
       namespace_packages=['docassemble'],
-      install_requires=['docassemble.MACourts>=0.0.58.2', 'docassemble.MAVirtualCourt>=1.0.22', 'docassemble.MassAppealsCourt'],
+      install_requires=['docassemble.AssemblyLine>=2.1.4', 'docassemble.MassAccess>=0.0.3.1', 'docassemble.MassAppealsCourt'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/AppealsCivilDocketingStatement/', package='docassemble.AppealsCivilDocketingStatement'),
      )

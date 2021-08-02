@@ -597,7 +597,7 @@ rows: judges
 columns:
   - name: |
       row_item.name if defined('row_item.name.first') else ""
-  - phone number: |
+  - role: |
       row_item.role if defined('row_item.role') else ""
 edit:
   - name.first
@@ -609,7 +609,7 @@ rows: attorneys
 columns:
   - name: |
       row_item.name if defined('row_item.name.first') else ""
-  - phone number: |
+  - BBO Number: |
       row_item.id_number if defined('row_item.id_number') else ""
 edit:
   - name.first
@@ -642,17 +642,9 @@ question: |
 subquestion: |
   Edit your answers below
 review:
-  - Edit: plaintiffs.revisit
-    button: |
-      **plaintiffs**:
-      ${ plaintiffs }
-  - Edit: defendants.revisit
-    button: |
-      **defendants**:
-      ${ defendants }
   - Edit: users.revisit
     button: |
-      **users**:
+      **users** (parties on your side):
       ${ users }
   - Edit: users[0].signature
     button: |
@@ -664,7 +656,7 @@ review:
       ${ users[0].address.address }
   - Edit: signature_date
     button: |
-      **signature_date**:
+      **signature date**:
       ${ signature_date }
   - Edit: users[0].phone_number
     button: |
@@ -672,7 +664,7 @@ review:
       ${ users[0].phone_number }
   - Edit: other_parties.revisit
     button: |
-      **other_parties**:
+      **other parties** (the parties not on your side):
       ${ other_parties }
   - Edit: attorneys.revisit
     button: |
@@ -681,6 +673,15 @@ review:
       % for att in attorneys:
       * ${ att }, *BBO*: ${ att.id_number}
       %endfor
+# TODO(brycew): keep these in? Are they confusing?
+#  - Edit: plaintiffs.revisit
+#    button: |
+#      **plaintiffs**:
+#      ${ plaintiffs }
+#  - Edit: defendants.revisit
+#    button: |
+#      **defendants**:
+#      ${ defendants }
   - Edit: judges.revisit
     button: |
       **Judges**:
@@ -819,5 +820,5 @@ review:
       ${ served_other_party }
   - Edit: appeals_docket_number
     button: |
-      **appeals_docket_number**:
+      **appeals docket number**:
       ${ appeals_docket_number }
