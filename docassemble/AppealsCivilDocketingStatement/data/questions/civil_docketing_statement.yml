@@ -79,6 +79,7 @@ code: |
   
   users[0].address.block()
   users[0].phone_number
+  users[0].pronouns
   signature_date
   set_progress(40.0)
   # Save (anonymized) interview statistics.
@@ -521,7 +522,7 @@ attachment:
       - "docket_number": ${ appeals_docket_number }
       - "plaintiff": ${ plaintiffs }
       - "defendant": ${ defendants }
-      - "user": ${ users }
+      - "user": "${ comma_and_list([f'{u} (pronouns: {comma_and_list(u.get_pronouns())})' for u in users]) }"
       - "attorney": ${ attorneys }
       - "user__2": ${ users if attorneys.number_gathered() == 0 else 'N/A' }
       - "user__3": ${ users }
