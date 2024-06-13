@@ -9,6 +9,45 @@ metadata:
     Civil Docketing Statement
   short title: |
     Civil Docketing
+  description: |
+    If you are filing an appeal in the Massachusetts Appeals Court, you can use this interview
+    to make a Civil Docketing Statement. This form is required for all appeals.
+
+    The Civil Docketing Statement is a form that provides the court with
+    information about your case. The form asks for information about the parties
+    involved, the nature of the case, and the relief you are seeking. The form
+    also asks for information about the attorneys involved in the case.
+  can_I_use_this_form: |
+    You can use this interview to make a Civil Docketing Statement if you are
+    filing a case in the Appeals Court.
+  before_you_start: |
+    Before you start, you should have the following information available:
+
+    - The names and addresses of the parties involved in the case
+    - The nature of the case and the relief you are seeking
+    - The names and addresses of the attorneys involved in the case
+  maturity: production
+  estimated_completion_minutes: 20
+  estimated_completion_delta: 10
+  languages:
+    - en
+  help_page_url: https://courtforms.jud.state.ma.us/publicforms/AC0001
+  LIST_topics: 
+    - FA-07-00-00-00
+  tags: 
+    - FA-07-00-00-00
+  jurisdiction: NAM-US-US+MA
+  original_form: https://courtforms.jud.state.ma.us/publicforms/AC0001
+  original_form_published_on: 2022
+  review_date: 2024
+  form_titles:
+    - Appeals Court Civil Docketing Statement
+  form_numbers:
+    - AC0001
+  fees:
+    - Filing fee: 0.00
+  update_notes: |
+    Reviewed and form is unchanged.
 ---
 features:
   navigation: True
