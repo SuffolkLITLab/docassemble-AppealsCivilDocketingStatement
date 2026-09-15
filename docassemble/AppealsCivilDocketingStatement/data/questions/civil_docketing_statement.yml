@@ -152,13 +152,17 @@ fields:
 id: Are you an attorney
 question: |
   Are you the attorney?
-yesno: is_attorney
+fields:
+  - no label: is_attorney
+    datatype: yesnoradio
 ---
 id: attorney will be on this form
 generic object: PeopleList
 question: |
   Do you have an attorney?
-yesno: attorneys.there_are_any
+fields:
+  - no label: attorneys.there_are_any
+    datatype: yesnoradio
 ---
 id: "Judge's name"
 question: |
@@ -204,14 +208,18 @@ fields:
 id: Judges on the trial case
 question: |
   Were there any judges involved in the issues that you are appealing?
-yesno: judges.there_are_any
+fields:
+  - no label: judges.there_are_any
+    datatype: yesnoradio
 ---
 id: more judges
 question: |
   Were any other judges involved in the issues that you are appealing?
 subquestion: |
   So far, you have mentioned ${ judges.comma_and_list() }. 
-yesno: judges.there_is_another
+fields:
+  - no label: judges.there_is_another
+    datatype: yesnoradio
 ---
 code: |
   # There are no judges when appealing agency or board decisions.
@@ -244,10 +252,11 @@ code: |
 ---
 if: |
   appealed_decision_maker == 'trial_court'
+id: "which court made the decision that you are appealing"
 question: |
   Which court made the decision that you are appealing?
 fields:
-  - no label: decision_maker_name
+  - "Which court made the decision that you are appealing?": decision_maker_name
     choices:
       - Boston Municipal Court
       - District Court
@@ -264,6 +273,7 @@ fields:
 ---
 if: |
   appealed_decision_maker == 'agency' or appealed_decision_maker == 'board'
+id: "which readable deciders appealed decision maker made the decision that you are appealing"
 question: |
   Which ${ readable_deciders[appealed_decision_maker] } made the decision that you are appealing?
 fields:
@@ -308,7 +318,7 @@ id: Nature of the Case
 question: |
   Select the most appropriate description of the case 
 fields:
-  - no label: nature_of_case
+  - "Select the most appropriate description of the case": nature_of_case
     choices:
       - Abuse Prevention Order
       - Administrative Law
@@ -355,7 +365,9 @@ help:
     This is as opposed to a temporary, or interlocutory, judgment. A final judgment disposes of all parties and claims, while an interlocutory order happens in the middle of the trial court case.
   label: |
     Specifics
-yesno: is_final_judgment
+fields:
+  - no label: is_final_judgment
+    datatype: yesnoradio
 ---
 id: Perfection of Appeal
 question: |
@@ -402,7 +414,9 @@ question: |
   Were there any post-judgment motions that needed to be decided before the notice of appeal was filed?
 subquestion: |
   This lets the appeals court know if the notice of appeal was filed later than expected and why. 
-yesno: any_motions_filed
+fields:
+  - no label: any_motions_filed
+    datatype: yesnoradio
 ---
 id: which timely motions
 question: |
@@ -464,12 +478,16 @@ question: |
   Appeals with these parties
 subquestion: |
   Are there any other appeals that involve this case or these parties (${ plaintiffs.comma_and_list()} or ${ defendants.comma_and_list()}) which have been entered in the Appeals Court or Supreme Judicial Court?
-yesno: party_proceedings_exist
+fields:
+  - no label: party_proceedings_exist
+    datatype: yesnoradio
 ---
 id: related issues
 question: |
   Do you know of any other pending or anticipated appeals raising related issues?
-yesno: related_appeals_exist
+fields:
+  - no label: related_appeals_exist
+    datatype: yesnoradio
 ---
 id: related appeals details
 question: |
@@ -619,6 +637,7 @@ confirm: True
 ---
 generic object: ALPeopleList
 field: x.revisit
+id: "edit the x object possessive information"
 question: |
   Edit the ${ x.object_possessive('information') }
 subquestion: |
@@ -628,6 +647,7 @@ subquestion: |
 ---
 generic object: DAList
 field: x.revisit
+id: "edit the x object possessive information 2"
 question: |
   Edit the ${ x.object_possessive('information') }
 subquestion: |
